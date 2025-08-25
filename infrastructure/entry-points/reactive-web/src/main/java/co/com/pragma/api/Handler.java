@@ -1,29 +1,43 @@
 package co.com.pragma.api;
 
-import lombok.RequiredArgsConstructor;
+import co.com.pragma.api.dto.CreateApplicationDto;
+import co.com.pragma.api.exception.ApplicationApiException;
+import co.com.pragma.api.mapper.ApplicationDtoMapper;
+import co.com.pragma.model.application.Application;
+import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 @Component
-@RequiredArgsConstructor
 public class Handler {
-//private  final UseCase useCase;
-//private  final UseCase2 useCase2;
 
-    public Mono<ServerResponse> listenGETUseCase(ServerRequest serverRequest) {
-        // useCase.logic();
-        return ServerResponse.ok().bodyValue("");
-    }
+  private final ApplicationControllerUseCase applicationControllerUseCase;
+  private final ApplicationDtoMapper applicationDtoMapper;
+  private final TransactionalOperator transactionalOperator;
 
-    public Mono<ServerResponse> listenGETOtherUseCase(ServerRequest serverRequest) {
-        // useCase2.logic();
-        return ServerResponse.ok().bodyValue("");
-    }
+  public Handler(ApplicationControllerUseCase applicationControllerUseCase, ApplicationDtoMapper applicationDtoMapper, TransactionalOperator transactionalOperator) {
+    this.applicationControllerUseCase = applicationControllerUseCase;
+    this.applicationDtoMapper = applicationDtoMapper;
+    this.transactionalOperator = transactionalOperator;
+  }
 
-    public Mono<ServerResponse> listenPOSTUseCase(ServerRequest serverRequest) {
-        // useCase.logic();
-        return ServerResponse.ok().bodyValue("");
-    }
+  //@PreAuthorize("hasRole('ADMIN')")
+  public Mono<ServerResponse> listenSaveApplication(ServerRequest serverRequest) {
+    return serverRequest
+      .bodyToMono(CreateApplicationDto.class)
+      .switchIfEmpty(Mono.error(new ApplicationApiException("Application data is required", HttpStatus.BAD_REQUEST)))
+      .map(dto -> {
+        Application.Builder userBuilder = applicationDtoMapper.toModel(dto);
+        return userBuilder.build();
+      })
+      .flatMap(application -> applicationControllerUseCase.saveApplication(application).as(transactionalOperator::transactional))
+      .map(applicationDtoMapper::toResponseDto)
+      .flatMap(reponseUser -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(reponseUser));
+  }
+
 }

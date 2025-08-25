@@ -1,16 +1,17 @@
 server:
-  port: 8080
+  port: 8090
 spring:
   application:
     name: "ApplicationApi"
   devtools:
     add-properties: false
-  h2:
-    console:
-      enabled: true
-      path: "/h2"
-  profiles:
-    include: null
+
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+
 management:
   endpoints:
     web:
@@ -22,3 +23,20 @@ management:
         enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+routes:
+  application:
+    paths:
+      application: "/api/v1/application"
+
+adapters:
+  r2dbc:
+    host: "localhost"
+    port: 5432
+    database: "applications"
+    schema: "public"
+    username: "postgres"
+    password: "postgres"
+
+jwt:
+  secret: "EstaEsUnaClaveSecretaMuyLargaParaQueSeaSeguraYCumplaConLosRequisitosDelAlgoritmoHS256"
