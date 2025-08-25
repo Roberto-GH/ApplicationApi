@@ -101,6 +101,12 @@ public class Application {
     }
 
     public Application build() {
+      if(this.loanTypeId == null || this.loanTypeId <= 0){
+        this.loanTypeId = 1L;
+      }
+      if(this.statusId == null || this.statusId <= 0){
+        this.statusId = 1L;
+      }
       return new Application(this);
     }
 
