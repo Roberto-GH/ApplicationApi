@@ -7,6 +7,6 @@ public record CreateApplicationDto (
   String term,
   String email,
   Long identityDocument,
-  String statusId,
+  Long statusId,
   Long loanTypeId
 ) {}
