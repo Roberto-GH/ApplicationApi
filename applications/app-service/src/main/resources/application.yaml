@@ -32,7 +32,7 @@ routes:
 adapters:
   r2dbc:
     host: "localhost"
-    port: 5432
+    port: 5433
     database: "applications"
     schema: "public"
     username: "postgres"
