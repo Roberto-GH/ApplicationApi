@@ -1,6 +1,7 @@
 package co.com.pragma.api.exception.handler;
 
 import co.com.pragma.api.exception.ApplicationApiException;
+import co.com.pragma.api.exception.AuthenticationApiException;
 import co.com.pragma.model.application.exception.ApplicationException;
 import co.com.pragma.model.application.validation.DomainValidationException;
 import org.slf4j.Logger;
@@ -41,6 +42,11 @@ public class GlobalErrorAttributes extends DefaultErrorAttributes {
       errorMap.put("message", domainException.getMessage());
       errorMap.put("status", HttpStatus.valueOf(domainException.getStatus()).value());
       errorMap.put("error", HttpStatus.valueOf(domainException.getStatus()).getReasonPhrase());
+    }
+    if (error instanceof AuthenticationApiException authException) {
+      errorMap.put("message", authException.getMessage());
+      errorMap.put("status", authException.getStatus().value());
+      errorMap.put("error", authException.getStatus().getReasonPhrase());
     }
     LOG.error(error.getMessage());
     return errorMap;

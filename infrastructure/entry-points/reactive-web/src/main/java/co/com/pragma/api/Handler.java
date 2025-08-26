@@ -7,6 +7,7 @@ import co.com.pragma.model.application.Application;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -26,7 +27,7 @@ public class Handler {
     this.transactionalOperator = transactionalOperator;
   }
 
-  //@PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public Mono<ServerResponse> listenSaveApplication(ServerRequest serverRequest) {
     return serverRequest
       .bodyToMono(CreateApplicationDto.class)
