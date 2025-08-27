@@ -2,12 +2,12 @@ package co.com.pragma.model.application;
 
 public class Status {
 
-  private final Long status_id;
+  private final Long statusId;
   private final String name;
   private final String description;
 
   private Status(Builder builder) {
-    this.status_id = builder.status_id;
+    this.statusId = builder.statusId;
     this.name = builder.name;
     this.description = builder.description;
   }
@@ -16,8 +16,8 @@ public class Status {
     return new Builder();
   }
 
-  public Long getStatus_id() {
-    return status_id;
+  public Long getStatusId() {
+    return statusId;
   }
 
   public String getName() {
@@ -30,12 +30,12 @@ public class Status {
 
   public static class Builder {
 
-    private Long status_id;
+    private Long statusId;
     private String name;
     private String description;
 
-    public Builder status_id(Long status_id) {
-      this.status_id = status_id;
+    public Builder statusId(Long statusId) {
+      this.statusId = statusId;
       return this;
     }
 
