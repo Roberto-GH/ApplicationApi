@@ -11,7 +11,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @Component
 public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
@@ -30,11 +29,13 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
       .map(claims -> new UsernamePasswordAuthenticationToken(
         claims.getSubject(),
         null,
-        Stream.of(claims.get("roles"))
-          .map(role -> (List<Map<String, String>>) role)
-          .flatMap(role -> role.stream()
-            .map(r -> r.get("authority"))
-            .map(SimpleGrantedAuthority::new))
+        ((List<?>) claims.getOrDefault("roles", List.of())).stream()
+          .filter(Map.class::isInstance)
+          .map(Map.class::cast)
+          .map(roleMap -> roleMap.get("authority"))
+          .filter(String.class::isInstance)
+          .map(String.class::cast)
+          .map(SimpleGrantedAuthority::new)
           .toList())
       );
   }

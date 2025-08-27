@@ -4,6 +4,7 @@ import co.com.pragma.api.dto.CreateApplicationDto;
 import co.com.pragma.api.exception.ApplicationApiException;
 import co.com.pragma.api.mapper.ApplicationDtoMapper;
 import co.com.pragma.model.application.Application;
+import co.com.pragma.model.application.validation.DomainValidationException;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,7 +28,7 @@ public class Handler {
     this.transactionalOperator = transactionalOperator;
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('ADMIN') || hasRole('USER')")
   public Mono<ServerResponse> listenSaveApplication(ServerRequest serverRequest) {
     return serverRequest
       .bodyToMono(CreateApplicationDto.class)

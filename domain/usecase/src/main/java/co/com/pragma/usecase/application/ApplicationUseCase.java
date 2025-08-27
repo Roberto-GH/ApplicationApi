@@ -1,7 +1,9 @@
 package co.com.pragma.usecase.application;
 
 import co.com.pragma.model.application.Application;
+import co.com.pragma.model.application.LoanType;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
+import co.com.pragma.model.application.gateways.LoanTypeRepository;
 import co.com.pragma.model.application.validation.*;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
 import reactor.core.publisher.Mono;
@@ -19,21 +21,25 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
   private static final Specification<BigDecimal> AMOUNT_VALIDATE = new AmountValidationSpecification("amount");
 
   private final ApplicationRepository applicationRepository;
+  private final LoanTypeRepository loanTypeRepository;
 
-  public ApplicationUseCase(ApplicationRepository applicationRepository) {
+  public ApplicationUseCase(ApplicationRepository applicationRepository, LoanTypeRepository loanTypeRepository) {
     this.applicationRepository = applicationRepository;
+    this.loanTypeRepository = loanTypeRepository;
   }
 
   @Override
   public Mono<Application> saveApplication(Application application) {
-    return Mono.fromCallable(() -> {
-      TERM_NOT_EMPTY.validate(application.getTerm());
-      EMAIL_FORMAT.validate(application.getEmail());
-      DOCUMENT_VALIDATE.validate(application.getIdentityDocument());
-      AMOUNT_VALIDATE.validate(application.getAmount());
-      return application;
-    }).doOnNext(validatedApplication -> LOG.info("Application validated successfully: " + validatedApplication.getLoanTypeId()))
-      .then(applicationRepository.saveApplication(application));
+    return TERM_NOT_EMPTY
+      .validate(application.getTerm())
+      .then(EMAIL_FORMAT.validate(application.getEmail()))
+      .then(DOCUMENT_VALIDATE.validate(application.getIdentityDocument()))
+      .then(AMOUNT_VALIDATE.validate(application.getAmount()))
+      .then(loanTypeRepository.findById(application.getLoanTypeId()))
+      .switchIfEmpty(Mono.error(new DomainValidationException("El tipo de prestamo con id " + application.getLoanTypeId() + " no existe", 400)))
+      .then(Mono.just(application))
+      .doOnNext(validatedApp -> LOG.info("Application validated successfully: " + validatedApp.getEmail()))
+      .flatMap(applicationRepository::saveApplication);
   }
 
 }
