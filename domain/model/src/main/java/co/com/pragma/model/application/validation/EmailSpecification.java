@@ -1,5 +1,7 @@
 package co.com.pragma.model.application.validation;
 
+import reactor.core.publisher.Mono;
+
 import java.util.regex.Pattern;
 
 public class EmailSpecification implements Specification<String> {
@@ -12,13 +14,14 @@ public class EmailSpecification implements Specification<String> {
   }
 
   @Override
-  public void validate(String candidate) throws DomainValidationException {
+  public Mono<Void> validate(String candidate) {
     if (candidate == null || candidate.trim().isEmpty()) {
-      throw new DomainValidationException("The email field '" + fieldName + "' cannot be empty.", 400);
+      return Mono.error(new DomainValidationException("The email field '" + fieldName + "' cannot be empty.", 400));
     }
     if (!EMAIL_PATTERN.matcher(candidate).matches()) {
-      throw new DomainValidationException("The format of the field '" + fieldName + "' is not a valid email.", 400);
+      return Mono.error(new DomainValidationException("The format of the field '" + fieldName + "' is not a valid email.", 400));
     }
+    return Mono.empty();
   }
 
 }

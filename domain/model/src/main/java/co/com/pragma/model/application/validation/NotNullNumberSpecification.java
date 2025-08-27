@@ -1,5 +1,7 @@
 package co.com.pragma.model.application.validation;
 
+import reactor.core.publisher.Mono;
+
 import java.util.logging.Logger;
 
 public class NotNullNumberSpecification implements Specification<Long> {
@@ -14,11 +16,12 @@ public class NotNullNumberSpecification implements Specification<Long> {
   }
 
   @Override
-  public void validate(Long candidate) throws DomainValidationException {
+  public Mono<Void> validate(Long candidate) {
     if (candidate == null || candidate <= 0) {
       LOG.severe("Validation failed: The field '" + fieldName + "' cannot be null or 0.");
-      throw new DomainValidationException("The field '" + fieldName + "' cannot be null or 0.", 400);
+      return Mono.error(new DomainValidationException("The field '" + fieldName + "' cannot be null or 0.", 400));
     }
+    return Mono.empty();
   }
 
 }

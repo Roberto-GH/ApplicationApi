@@ -1,5 +1,7 @@
 package co.com.pragma.model.application.validation;
 
+import reactor.core.publisher.Mono;
+
 public class AmountInRangeSpecification implements Specification<Long> {
 
   private final Long min;
@@ -13,13 +15,14 @@ public class AmountInRangeSpecification implements Specification<Long> {
   }
 
   @Override
-  public void validate(Long candidate) throws DomainValidationException {
+  public Mono<Void> validate(Long candidate) {
     if (candidate == null) {
-      throw new DomainValidationException("The amount '" + fieldName + "' cannot be null.", 400);
+      return Mono.error(new DomainValidationException("The amount '" + fieldName + "' cannot be null.", 400));
     }
     if (candidate.compareTo(min) < 0 || candidate.compareTo(max) > 0) {
-      throw new DomainValidationException("The amount '" + fieldName + "' must be between " + min + " and " + max + ".", 400);
+      return Mono.error(new DomainValidationException("The amount '" + fieldName + "' must be between " + min + " and " + max + ".", 400));
     }
+    return Mono.empty();
   }
 
 }
