@@ -5,7 +5,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -17,8 +16,11 @@ public class JwtProvider {
 
   private static final Logger LOG = Logger.getLogger(JwtProvider.class.getName());
 
-  @Value("${jwt.secret}")
-  private String secret;
+  private final String secret;
+
+  public JwtProvider(@Value("${jwt.secret}") String secret) {
+    this.secret = secret;
+  }
 
   public Claims getClaims(String token) {
     validate(token);
