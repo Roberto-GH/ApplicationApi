@@ -28,7 +28,7 @@ public class Handler {
     this.transactionalOperator = transactionalOperator;
   }
 
-  @PreAuthorize("hasRole('ADMIN') || hasRole('USER')")
+  @PreAuthorize("hasRole('USER')")
   public Mono<ServerResponse> listenSaveApplication(ServerRequest serverRequest) {
     return serverRequest
       .bodyToMono(CreateApplicationDto.class)

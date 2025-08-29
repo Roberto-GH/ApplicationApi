@@ -10,6 +10,7 @@ buildscript {
     jwtVersion = '0.13.0'
     txVersion = '6.2.9'
     openApiVersion = '2.8.11'
+    gsonVersion = '2.13.1'
 	}
 }
 

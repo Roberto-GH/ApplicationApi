@@ -11,34 +11,39 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RouterRestTest {
 
-    @Mock
-    private Handler handler;
-    @Mock
-    private ApplicationPath applicationPath;
+  private WebTestClient webTestClient;
 
-    @InjectMocks
-    private RouterRest routerRest;
+  @Mock
+  private Handler handler;
+  @Mock
+  private ApplicationPath applicationPath;
 
-    private WebTestClient webTestClient;
+  @InjectMocks
+  private RouterRest routerRest;
 
-    @BeforeEach
-    void setUp() {
-        when(applicationPath.getApplication()).thenReturn("/api/v1/application");
-        when(handler.listenSaveApplication(any())).thenReturn(ServerResponse.ok().build());
-        RouterFunction<ServerResponse> routerFunction = routerRest.routerFunction(handler);
-        webTestClient = WebTestClient.bindToRouterFunction(routerFunction).build();
-    }
 
-    @Test
-    void testRouterFunction() {
-        webTestClient.post().uri("/api/v1/application")
-                .exchange()
-                .expectStatus().isOk(); // Expecting OK because the handler is mocked to return a successful response
-    }
+  @BeforeEach
+  void setUp() {
+    when(applicationPath.getApplication()).thenReturn("/api/v1/application");
+    when(handler.listenSaveApplication(any())).thenReturn(ServerResponse.ok().build());
+    RouterFunction<ServerResponse> routerFunction = routerRest.routerFunction(handler);
+    webTestClient = WebTestClient.bindToRouterFunction(routerFunction).build();
+  }
+
+  @Test
+  void testRouterFunction() {
+    webTestClient
+      .post()
+      .uri("/api/v1/application")
+      .exchange()
+      .expectStatus()
+      .isOk();
+  }
+
 }

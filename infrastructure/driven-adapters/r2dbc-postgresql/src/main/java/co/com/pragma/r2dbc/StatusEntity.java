@@ -19,7 +19,7 @@ public class StatusEntity {
 
   @Id
   @Column("status_id")
-  private Long status_id;
+  private Long statusId;
   private String name;
   private String description;
 

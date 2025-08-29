@@ -7,10 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class BeansConfigTest {
 
-    @Test
-    void resourcesBeanShouldNotBeNull() {
-        BeansConfig beansConfig = new BeansConfig();
-        WebProperties.Resources resources = beansConfig.resources();
-        assertNotNull(resources);
-    }
+  @Test
+  void resourcesBeanShouldNotBeNull() {
+    BeansConfig beansConfig = new BeansConfig();
+    WebProperties.Resources resources = beansConfig.resources();
+    assertNotNull(resources);
+  }
+
 }
