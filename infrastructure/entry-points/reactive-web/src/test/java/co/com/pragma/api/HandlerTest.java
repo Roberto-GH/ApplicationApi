@@ -77,7 +77,7 @@ class HandlerTest {
       .expectErrorMatches(
         throwable -> throwable instanceof ApplicationApiException
                      && ((ApplicationApiException) throwable).getStatus().equals(HttpStatus.BAD_REQUEST)
-                     && throwable.getMessage().equals("Application data is required")
+                     && throwable.getMessage().equals(ApplicationWebKeys.ERROR_DATA_REQUIRED)
       ).verify();
   }
 

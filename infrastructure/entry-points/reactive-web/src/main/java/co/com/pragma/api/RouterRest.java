@@ -30,16 +30,18 @@ public class RouterRest {
 
   @RouterOperations({
     @RouterOperation(
-      path = "/api/v1/application",
+      path = ApplicationWebKeys.OPEN_API_APPLICATION_PATH,
       method = RequestMethod.POST,
       beanClass = Handler.class,
-      beanMethod = "listenSaveApplication",
+      beanMethod = ApplicationWebKeys.OPEN_API_BEAN_METHOD_SAVE_APPLICATION,
       operation = @Operation(
-        operationId = "saveApplication", responses = {
+        operationId = ApplicationWebKeys.OPEN_API_OPERATION_ID, responses = {
         @ApiResponse(
-          responseCode = "200",
-          description = "Successful operation",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApplicationResponseDto.class)))
+          responseCode = ApplicationWebKeys.OPEN_API_RESPONSE_CODE,
+          description = ApplicationWebKeys.OPEN_API_DESCRIPTION_SUCCESS,
+          content = @Content(mediaType = ApplicationWebKeys.OPEN_API_MEDIA_TYPE,
+            schema = @Schema(implementation = ApplicationResponseDto.class))
+        )
       },
         requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = CreateApplicationDto.class)))
       ))

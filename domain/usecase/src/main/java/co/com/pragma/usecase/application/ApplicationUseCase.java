@@ -6,6 +6,7 @@ import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.LoanTypeRepository;
 import co.com.pragma.model.application.validation.*;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
+import co.com.pragma.usecase.application.constants.ApplicationUseCaseKeys;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -15,10 +16,10 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
 
   private static final Logger LOG = Logger.getLogger(ApplicationUseCase.class.getName());
 
-  private static final Specification<String> TERM_NOT_EMPTY = new NotEmptySpecification("term");
-  private static final Specification<String> EMAIL_FORMAT = new EmailSpecification("email");
-  private static final Specification<Long> DOCUMENT_VALIDATE = new NotNullNumberSpecification("identityDocument");
-  private static final Specification<BigDecimal> AMOUNT_VALIDATE = new AmountValidationSpecification("amount");
+  private static final Specification<String> TERM_NOT_EMPTY = new NotEmptySpecification(ApplicationUseCaseKeys.TERM_FIELD);
+  private static final Specification<String> EMAIL_FORMAT = new EmailSpecification(ApplicationUseCaseKeys.EMAIL_FIELD);
+  private static final Specification<Long> DOCUMENT_VALIDATE = new NotNullNumberSpecification(ApplicationUseCaseKeys.DOCUMENT_FIELD);
+  private static final Specification<BigDecimal> AMOUNT_VALIDATE = new AmountValidationSpecification(ApplicationUseCaseKeys.AMOUNT_FIELD);
 
   private final ApplicationRepository applicationRepository;
   private final LoanTypeRepository loanTypeRepository;
@@ -36,9 +37,9 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
       .then(DOCUMENT_VALIDATE.validate(application.getIdentityDocument()))
       .then(AMOUNT_VALIDATE.validate(application.getAmount()))
       .then(loanTypeRepository.findById(application.getLoanTypeId()))
-      .switchIfEmpty(Mono.error(new DomainValidationException("El tipo de prestamo con id " + application.getLoanTypeId() + " no existe", 400)))
+      .switchIfEmpty(Mono.error(new DomainValidationException(ApplicationUseCaseKeys.LOAD_ID_NO_EXIST + application.getLoanTypeId(), 400)))
       .then(Mono.just(application))
-      .doOnNext(validatedApp -> LOG.info("Application validated successfully: " + validatedApp.getEmail()))
+      .doOnNext(validatedApp -> LOG.info(ApplicationUseCaseKeys.APPLICATION_VALIDATED_SUCCESSFULLY + validatedApp.getEmail()))
       .flatMap(applicationRepository::saveApplication);
   }
 

@@ -1,5 +1,6 @@
 package co.com.pragma.api.config;
 
+import co.com.pragma.api.ApplicationWebKeys;
 import co.com.pragma.api.jwt.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,13 +24,8 @@ public class SecurityConfig {
     return http
       .csrf(ServerHttpSecurity.CsrfSpec::disable)
       .authorizeExchange(exchangeSpec -> exchangeSpec
-        .pathMatchers(
-          "/auth/**",
-          "/swagger-ui.html",
-          "/swagger-ui/**",
-          "/v3/api-docs/**",
-          "/webjars/swagger-ui/**"
-        ).permitAll()
+        .pathMatchers(ApplicationWebKeys.ALLOWED_PATHS)
+        .permitAll()
         .anyExchange()
         .authenticated())
       .addFilterAfter(jwtFilter, SecurityWebFiltersOrder.FIRST)

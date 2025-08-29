@@ -1,0 +1,58 @@
+package co.com.pragma.api;
+
+import lombok.Getter;
+
+public class ApplicationWebKeys {
+
+  private ApplicationWebKeys() throws InstantiationException {
+    throw new InstantiationException("Instances are forbidden");
+  }
+
+  public static final String PATH_ROUTE_APPLICATION = "routes.application.paths";
+  public static final String POST_METHOD = "POST";
+  public static final String GET_METHOD = "GET";
+  public static final String REGISTER_CORS_PATH = "/**";
+  public static final String OPEN_API_TITLE = "Application API";
+  public static final String OPEN_API_VERSION = "1.0.0";
+  public static final String OPEN_API_DESCRIPTION = "API for applications management.";
+  public static final String OPEN_API_SECURITY_NAME = "bearerAuth";
+  public static final String OPEN_API_SCHEME = "bearer";
+  public static final String OPEN_API_BEARER_FORMAT = "JWT";
+  public static final String ERROR_ATTRIBUTE_MESSAGE = "message";
+  public static final String ERROR_ATTRIBUTE_STATUS = "status";
+  public static final String ERROR_ATTRIBUTE_ERROR = "error";
+  public static final String ERROR_ATTRIBUTE_PATH = "path";
+  public static final String JWT_ERROR_BAD_TOKEN = "Bad token";
+  public static final String JWT_ROLES = "roles";
+  public static final String JWT_AUTHORITY = "authority";
+  public static final String ERROR_DATA_REQUIRED = "Application data is required ";
+  public static final String OPEN_API_APPLICATION_PATH = "/api/v1/application";
+  public static final String OPEN_API_BEAN_METHOD_SAVE_APPLICATION = "listenSaveApplication";
+  public static final String OPEN_API_OPERATION_ID = "saveApplication";
+  public static final String OPEN_API_RESPONSE_CODE = "200";
+  public static final String OPEN_API_DESCRIPTION_SUCCESS = "Successful operation";
+  public static final String OPEN_API_MEDIA_TYPE = "application/json";
+
+  public static final String[] ALLOWED_PATHS = new String[]{"/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/swagger-ui/**"};
+
+  @Getter
+  public enum HttpHeadersEnum {
+    CSP_HEADER("Content-Security-Policy", "default-src 'self'; frame-ancestors 'self'; form-action 'self'"),
+    STS_HEADER("Strict-Transport-Security", "max-age=31536000;"),
+    XCTO_HEADER("X-Content-Type-Options", "nosniff"),
+    SERVER_HEADER("Server", ""),
+    CACHE_CONTROL_HEADER("Cache-Control", "no-store"),
+    PRAGMA_HEADER("Pragma", "no-cache"),
+    REFERRER_POLICY_HEADER("Referrer-Policy", "strict-origin-when-cross-origin");
+
+    private final String key;
+    private final String value;
+
+    HttpHeadersEnum(String key, String value) {
+      this.key = key;
+      this.value = value;
+    }
+
+  }
+
+}

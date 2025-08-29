@@ -18,7 +18,7 @@ import java.util.UUID;
 public class StatusEntity {
 
   @Id
-  @Column("status_id")
+  @Column(PostgreSQLKeys.COLUMN_NAME_STATUS_ID)
   private Long statusId;
   private String name;
   private String description;

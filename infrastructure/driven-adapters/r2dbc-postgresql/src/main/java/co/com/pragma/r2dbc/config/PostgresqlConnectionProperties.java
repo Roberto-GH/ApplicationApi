@@ -1,8 +1,9 @@
 package co.com.pragma.r2dbc.config;
 
+import co.com.pragma.r2dbc.PostgreSQLKeys;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "adapters.r2dbc")
+@ConfigurationProperties(prefix = PostgreSQLKeys.PATH_CONFIG_R2DBC)
 public record PostgresqlConnectionProperties(
   String host,
   Integer port,

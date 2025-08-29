@@ -1,5 +1,6 @@
 package co.com.pragma.api.jwt;
 
+import co.com.pragma.api.ApplicationWebKeys;
 import co.com.pragma.api.exception.AuthenticationApiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -25,14 +26,14 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
   public Mono<Authentication> authenticate(Authentication authentication) {
     return Mono.just(authentication)
       .map(auth -> jwtProvider.getClaims(auth.getCredentials().toString()))
-      .onErrorResume(e -> Mono.error(new AuthenticationApiException("Bad token", HttpStatus.UNAUTHORIZED)))
+      .onErrorResume(e -> Mono.error(new AuthenticationApiException(ApplicationWebKeys.JWT_ERROR_BAD_TOKEN, HttpStatus.UNAUTHORIZED)))
       .map(claims -> new UsernamePasswordAuthenticationToken(
         claims.getSubject(),
         null,
-        ((List<?>) claims.getOrDefault("roles", List.of())).stream()
+        ((List<?>) claims.getOrDefault(ApplicationWebKeys.JWT_ROLES, List.of())).stream()
           .filter(Map.class::isInstance)
           .map(Map.class::cast)
-          .map(roleMap -> roleMap.get("authority"))
+          .map(roleMap -> roleMap.get(ApplicationWebKeys.JWT_AUTHORITY))
           .filter(String.class::isInstance)
           .map(String.class::cast)
           .map(SimpleGrantedAuthority::new)

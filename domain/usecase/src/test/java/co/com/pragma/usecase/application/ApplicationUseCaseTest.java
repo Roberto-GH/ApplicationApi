@@ -5,6 +5,7 @@ import co.com.pragma.model.application.LoanType;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.LoanTypeRepository;
 import co.com.pragma.model.application.validation.DomainValidationException;
+import co.com.pragma.usecase.application.constants.ApplicationUseCaseKeys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,7 +71,7 @@ class ApplicationUseCaseTest {
           .create(applicationUseCase.saveApplication(validApplication))
           .expectErrorMatches(
             throwable -> throwable instanceof DomainValidationException &&
-                         throwable.getMessage().equals("El tipo de prestamo con id " + validApplication.getLoanTypeId() + " no existe"))
+                         throwable.getMessage().equals(ApplicationUseCaseKeys.LOAD_ID_NO_EXIST + validApplication.getLoanTypeId()))
           .verify();
     }
 
