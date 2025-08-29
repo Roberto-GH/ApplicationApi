@@ -17,28 +17,25 @@ import static org.mockito.ArgumentMatchers.any;
 @ExtendWith(MockitoExtension.class)
 class RouterRestTest {
 
-    @Mock
-    private Handler handler;
-    @Mock
-    private ApplicationPath applicationPath;
+  @Mock
+  private Handler handler;
+  @Mock
+  private ApplicationPath applicationPath;
+  @InjectMocks
+  private RouterRest routerRest;
+  private WebTestClient webTestClient;
 
-    @InjectMocks
-    private RouterRest routerRest;
+  @BeforeEach
+  void setUp() {
+    when(applicationPath.getApplication()).thenReturn("/api/v1/application");
+    when(handler.listenSaveApplication(any())).thenReturn(ServerResponse.ok().build());
+    RouterFunction<ServerResponse> routerFunction = routerRest.routerFunction(handler);
+    webTestClient = WebTestClient.bindToRouterFunction(routerFunction).build();
+  }
 
-    private WebTestClient webTestClient;
+  @Test
+  void testRouterFunction() {
+    webTestClient.post().uri("/api/v1/application").exchange().expectStatus().isOk(); // Expecting OK because the handler is mocked to return a successful response
+  }
 
-    @BeforeEach
-    void setUp() {
-        when(applicationPath.getApplication()).thenReturn("/api/v1/application");
-        when(handler.listenSaveApplication(any())).thenReturn(ServerResponse.ok().build());
-        RouterFunction<ServerResponse> routerFunction = routerRest.routerFunction(handler);
-        webTestClient = WebTestClient.bindToRouterFunction(routerFunction).build();
-    }
-
-    @Test
-    void testRouterFunction() {
-        webTestClient.post().uri("/api/v1/application")
-                .exchange()
-                .expectStatus().isOk(); // Expecting OK because the handler is mocked to return a successful response
-    }
 }

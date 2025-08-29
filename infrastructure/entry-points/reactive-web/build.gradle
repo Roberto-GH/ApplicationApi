@@ -13,4 +13,14 @@ dependencies {
     runtimeOnly "io.jsonwebtoken:jjwt-jackson:$jwtVersion"
     implementation "org.springframework:spring-tx:$txVersion"
     implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:$openApiVersion"
+    implementation "com.google.code.gson:gson:$gsonVersion"
+
+    testImplementation "org.mapstruct:mapstruct:$mapstructVersion"
+    testImplementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    testImplementation "io.jsonwebtoken:jjwt-api:$jwtVersion"
+    testRuntimeOnly "io.jsonwebtoken:jjwt-impl:$jwtVersion"
+    testRuntimeOnly "io.jsonwebtoken:jjwt-jackson:$jwtVersion"
+    testImplementation "org.springframework:spring-tx:$txVersion"
+    testImplementation "org.springdoc:springdoc-openapi-starter-webflux-ui:$openApiVersion"
+    testImplementation "com.google.code.gson:gson:$gsonVersion"
 }

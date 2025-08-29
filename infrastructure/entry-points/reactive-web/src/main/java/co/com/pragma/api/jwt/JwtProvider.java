@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
 import java.util.logging.Logger;
 
 @Component
@@ -32,8 +31,6 @@ public class JwtProvider {
       Jwts.parser().verifyWith(getKey(secret)).build().parseSignedClaims(token).getPayload().getSubject();
     } catch (ExpiredJwtException e) {
       LOG.severe("token expired");
-    } catch (UnsupportedJwtException e) {
-      LOG.severe("token unsupported");
     } catch (MalformedJwtException e) {
       LOG.severe("token malformed");
     } catch (SignatureException e) {
