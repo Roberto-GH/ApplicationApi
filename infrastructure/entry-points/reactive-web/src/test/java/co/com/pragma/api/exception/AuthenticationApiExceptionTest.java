@@ -7,10 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class AuthenticationApiExceptionTest {
 
-    @Test
-    void testException() {
-        AuthenticationApiException exception = new AuthenticationApiException("test message", HttpStatus.UNAUTHORIZED);
-        assertEquals("test message", exception.getMessage());
-        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatus());
-    }
+  @Test
+  void testException() {
+    AuthenticationApiException exception = new AuthenticationApiException("test message", HttpStatus.UNAUTHORIZED);
+    assertEquals("test message", exception.getMessage());
+    assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatus());
+  }
 }

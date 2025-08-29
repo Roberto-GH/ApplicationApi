@@ -11,19 +11,22 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RouterRestTest {
+
+  private WebTestClient webTestClient;
 
   @Mock
   private Handler handler;
   @Mock
   private ApplicationPath applicationPath;
+
   @InjectMocks
   private RouterRest routerRest;
-  private WebTestClient webTestClient;
+
 
   @BeforeEach
   void setUp() {
@@ -35,7 +38,12 @@ class RouterRestTest {
 
   @Test
   void testRouterFunction() {
-    webTestClient.post().uri("/api/v1/application").exchange().expectStatus().isOk(); // Expecting OK because the handler is mocked to return a successful response
+    webTestClient
+      .post()
+      .uri("/api/v1/application")
+      .exchange()
+      .expectStatus()
+      .isOk();
   }
 
 }
