@@ -19,7 +19,7 @@ public class ApplicationWebKeys {
   public static final String OPEN_API_SCHEME = "bearer";
   public static final String OPEN_API_BEARER_FORMAT = "JWT";
   public static final String ERROR_ATTRIBUTE_MESSAGE = "message";
-  public static final String ERROR_ATTRIBUTE_STATUS = "status";
+  public static final String ERROR_ATTRIBUTE_ERROR_CODE = "error_code";
   public static final String ERROR_ATTRIBUTE_ERROR = "error";
   public static final String ERROR_ATTRIBUTE_PATH = "path";
   public static final String JWT_ERROR_BAD_TOKEN = "Bad token";

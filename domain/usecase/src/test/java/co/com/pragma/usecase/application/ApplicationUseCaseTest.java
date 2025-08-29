@@ -4,7 +4,7 @@ import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.LoanType;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.LoanTypeRepository;
-import co.com.pragma.model.application.validation.DomainValidationException;
+import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.usecase.application.constants.ApplicationUseCaseKeys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,7 +71,7 @@ class ApplicationUseCaseTest {
           .create(applicationUseCase.saveApplication(validApplication))
           .expectErrorMatches(
             throwable -> throwable instanceof DomainValidationException &&
-                         throwable.getMessage().equals(ApplicationUseCaseKeys.LOAD_ID_NO_EXIST + validApplication.getLoanTypeId()))
+                         throwable.getMessage().equals(ApplicationUseCaseKeys.LOAN_ID_NOT_EXIST + validApplication.getLoanTypeId()))
           .verify();
     }
 

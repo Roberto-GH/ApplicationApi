@@ -1,6 +1,7 @@
 package co.com.pragma.api.exception.handler;
 
 import co.com.pragma.api.exception.ApplicationApiException;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ class TestRouter {
   public RouterFunction<ServerResponse> testRoutes() {
     return RouterFunctions
       .route()
-      .GET("/test-exception", request -> Mono.error(new ApplicationApiException("Test Exception", HttpStatus.UNAUTHORIZED)))
+      .GET("/test-exception", request -> Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, "Test Exception")))
       .build();
   }
 

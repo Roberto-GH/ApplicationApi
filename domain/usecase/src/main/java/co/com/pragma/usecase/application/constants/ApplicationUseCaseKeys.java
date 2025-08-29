@@ -6,7 +6,7 @@ public class ApplicationUseCaseKeys {
     throw new InstantiationException("Instances are forbidden");
   }
 
-  public static final String LOAD_ID_NO_EXIST = "No existe el tipo de prestamo con id ";
+  public static final String LOAN_ID_NOT_EXIST = "Loan type with id does not exist ";
   public static final String APPLICATION_VALIDATED_SUCCESSFULLY = "Application validated successfully ";
   public static final String TERM_FIELD = "term";
   public static final String EMAIL_FIELD = "email";

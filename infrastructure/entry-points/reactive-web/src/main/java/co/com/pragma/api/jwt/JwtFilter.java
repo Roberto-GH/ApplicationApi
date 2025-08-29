@@ -1,8 +1,8 @@
 package co.com.pragma.api.jwt;
 
 import co.com.pragma.api.exception.AuthenticationApiException;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -23,9 +23,9 @@ public class JwtFilter implements WebFilter {
       return chain.filter(exchange);
     String auth = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
     if(auth == null)
-      return Mono.error(new AuthenticationApiException("No token was found", HttpStatus.UNAUTHORIZED));
+      return Mono.error(new AuthenticationApiException(ErrorEnum.UNAUTHORIZED_ACCESS, "No token was found"));
     if(!auth.startsWith("Bearer "))
-      return Mono.error(new AuthenticationApiException("Invalid auth", HttpStatus.UNAUTHORIZED));
+      return Mono.error(new AuthenticationApiException(ErrorEnum.UNAUTHORIZED_ACCESS, "Invalid auth"));
     String token = auth.replace("Bearer ", "");
     exchange.getAttributes().put("token", token);
     return chain.filter(exchange);

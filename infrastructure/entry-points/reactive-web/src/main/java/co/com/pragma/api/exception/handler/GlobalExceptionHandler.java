@@ -1,6 +1,6 @@
 package co.com.pragma.api.exception.handler;
 
-import co.com.pragma.api.ApplicationWebKeys;
+import co.com.pragma.model.application.exception.CustomException;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -31,7 +31,11 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
   private Mono<ServerResponse> renderException(ServerRequest request) {
     Map<String, Object> error = this.getErrorAttributes(request, ErrorAttributeOptions.defaults());
-    int status = (int) error.get(ApplicationWebKeys.ERROR_ATTRIBUTE_STATUS);
+    Throwable errorObject = getError(request);
+    int status = 500;
+    if(errorObject instanceof CustomException customException) {
+      status = customException.getStatus();
+    }
     return ServerResponse.status(status).contentType(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(error));
   }
 

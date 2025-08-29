@@ -4,8 +4,8 @@ import co.com.pragma.api.dto.CreateApplicationDto;
 import co.com.pragma.api.exception.ApplicationApiException;
 import co.com.pragma.api.mapper.ApplicationDtoMapper;
 import co.com.pragma.model.application.Application;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ public class Handler {
   public Mono<ServerResponse> listenSaveApplication(ServerRequest serverRequest) {
     return serverRequest
       .bodyToMono(CreateApplicationDto.class)
-      .switchIfEmpty(Mono.error(new ApplicationApiException(ApplicationWebKeys.ERROR_DATA_REQUIRED, HttpStatus.BAD_REQUEST)))
+      .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.ERROR_DATA_REQUIRED)))
       .map(dto -> {
         Application.Builder userBuilder = applicationDtoMapper.toModel(dto);
         return userBuilder.build();

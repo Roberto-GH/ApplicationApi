@@ -5,7 +5,8 @@ import co.com.pragma.api.dto.CreateApplicationDto;
 import co.com.pragma.api.exception.ApplicationApiException;
 import co.com.pragma.api.mapper.ApplicationDtoMapper;
 import co.com.pragma.model.application.Application;
-import co.com.pragma.model.application.validation.DomainValidationException;
+import co.com.pragma.model.application.exception.DomainValidationException;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,7 +77,7 @@ class HandlerTest {
       .create(handler.listenSaveApplication(request))
       .expectErrorMatches(
         throwable -> throwable instanceof ApplicationApiException
-                     && ((ApplicationApiException) throwable).getStatus().equals(HttpStatus.BAD_REQUEST)
+                     && ((ApplicationApiException) throwable).getStatus() == 400
                      && throwable.getMessage().equals(ApplicationWebKeys.ERROR_DATA_REQUIRED)
       ).verify();
   }
@@ -85,8 +86,8 @@ class HandlerTest {
   void listenSaveApplication_domainValidationException() {
     MockServerRequest request = MockServerRequest.builder().body(Mono.just(createApplicationDto));
     when(applicationDtoMapper.toModel(any(CreateApplicationDto.class))).thenReturn(Application.builder());
-    when(applicationControllerUseCase.saveApplication(any(Application.class))).thenReturn(Mono.error(new DomainValidationException("Invalid data", HttpStatus.BAD_REQUEST.value())));
-    when(transactionalOperator.transactional(any(Mono.class))).thenReturn(Mono.error(new DomainValidationException("Invalid data", HttpStatus.BAD_REQUEST.value())));
+    when(applicationControllerUseCase.saveApplication(any(Application.class))).thenReturn(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, "Invalid data")));
+    when(transactionalOperator.transactional(any(Mono.class))).thenReturn(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, "Invalid data")));
     StepVerifier
       .create(handler.listenSaveApplication(request))
       .expectErrorMatches(throwable -> throwable instanceof DomainValidationException && throwable.getMessage().equals("Invalid data"))

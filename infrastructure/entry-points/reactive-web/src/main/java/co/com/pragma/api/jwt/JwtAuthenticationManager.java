@@ -2,6 +2,7 @@ package co.com.pragma.api.jwt;
 
 import co.com.pragma.api.ApplicationWebKeys;
 import co.com.pragma.api.exception.AuthenticationApiException;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,7 +27,7 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
   public Mono<Authentication> authenticate(Authentication authentication) {
     return Mono.just(authentication)
       .map(auth -> jwtProvider.getClaims(auth.getCredentials().toString()))
-      .onErrorResume(e -> Mono.error(new AuthenticationApiException(ApplicationWebKeys.JWT_ERROR_BAD_TOKEN, HttpStatus.UNAUTHORIZED)))
+      .onErrorResume(e -> Mono.error(new AuthenticationApiException(ErrorEnum.UNAUTHORIZED_ACCESS, ApplicationWebKeys.JWT_ERROR_BAD_TOKEN)))
       .map(claims -> new UsernamePasswordAuthenticationToken(
         claims.getSubject(),
         null,

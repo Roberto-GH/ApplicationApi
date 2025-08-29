@@ -1,7 +1,8 @@
 package co.com.pragma.usecase.application;
 
 import co.com.pragma.model.application.Application;
-import co.com.pragma.model.application.LoanType;
+import co.com.pragma.model.application.exception.DomainValidationException;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.LoanTypeRepository;
 import co.com.pragma.model.application.validation.*;
@@ -37,7 +38,7 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
       .then(DOCUMENT_VALIDATE.validate(application.getIdentityDocument()))
       .then(AMOUNT_VALIDATE.validate(application.getAmount()))
       .then(loanTypeRepository.findById(application.getLoanTypeId()))
-      .switchIfEmpty(Mono.error(new DomainValidationException(ApplicationUseCaseKeys.LOAD_ID_NO_EXIST + application.getLoanTypeId(), 400)))
+      .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.LOAN_ID_NOT_EXIST + application.getLoanTypeId())))
       .then(Mono.just(application))
       .doOnNext(validatedApp -> LOG.info(ApplicationUseCaseKeys.APPLICATION_VALIDATED_SUCCESSFULLY + validatedApp.getEmail()))
       .flatMap(applicationRepository::saveApplication);

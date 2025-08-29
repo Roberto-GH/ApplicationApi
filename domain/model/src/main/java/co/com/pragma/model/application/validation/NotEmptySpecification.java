@@ -1,5 +1,7 @@
 package co.com.pragma.model.application.validation;
 
+import co.com.pragma.model.application.exception.DomainValidationException;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import reactor.core.publisher.Mono;
 
 import java.util.logging.Logger;
@@ -18,7 +20,7 @@ public class NotEmptySpecification implements Specification<String> {
   public Mono<Void> validate(String candidate) {
     if (candidate == null || candidate.trim().isEmpty()) {
       LOG.severe("Validation failed: The field '" + fieldName + "' cannot be null or empty.");
-      return Mono.error(new DomainValidationException("The field '" + fieldName + "' cannot be null or empty.", 400));
+      return Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, "The field '" + fieldName + "' cannot be null or empty."));
     }
     return Mono.empty();
   }

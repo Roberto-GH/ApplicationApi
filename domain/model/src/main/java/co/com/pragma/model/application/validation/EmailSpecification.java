@@ -1,5 +1,7 @@
 package co.com.pragma.model.application.validation;
 
+import co.com.pragma.model.application.exception.DomainValidationException;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import reactor.core.publisher.Mono;
 
 import java.util.regex.Pattern;
@@ -16,10 +18,10 @@ public class EmailSpecification implements Specification<String> {
   @Override
   public Mono<Void> validate(String candidate) {
     if (candidate == null || candidate.trim().isEmpty()) {
-      return Mono.error(new DomainValidationException("The email field '" + fieldName + "' cannot be empty.", 400));
+      return Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, "The email field '" + fieldName + "' cannot be empty."));
     }
     if (!EMAIL_PATTERN.matcher(candidate).matches()) {
-      return Mono.error(new DomainValidationException("The format of the field '" + fieldName + "' is not a valid email.", 400));
+      return Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, "The format of the field '" + fieldName + "' is not a valid email."));
     }
     return Mono.empty();
   }
