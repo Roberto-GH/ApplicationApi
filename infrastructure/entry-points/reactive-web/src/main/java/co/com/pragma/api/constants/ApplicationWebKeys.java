@@ -25,6 +25,8 @@ public class ApplicationWebKeys {
   public static final String JWT_ERROR_BAD_TOKEN = "Bad token";
   public static final String JWT_ROLES = "roles";
   public static final String JWT_AUTHORITY = "authority";
+  public static final String HEADER_AUTHORIZATION = "Authorization";
+  public static final String STRING_BLANK = "";
   public static final String TOKEN = "token";
   public static final String STRING_AUTH = "auth";
   public static final String STRING_SWAGGER = "swagger";
@@ -34,12 +36,12 @@ public class ApplicationWebKeys {
   public static final String INVALID_TOKEN = "Invalid auth";
   public static final String SPRING = "spring";
   public static final String BEARER = "Bearer ";
-  public static final String STRING_BLANK = "";
   public static final String TOKEN_EXPIRED = "token expired";
   public static final String TOKEN_MALFORMED = "token malformed";
   public static final String BAD_SIGNATURE = "bad signature";
   public static final String ILLEGAL_ARGS = "illegal args";
   public static final String ERROR_DATA_REQUIRED = "Application data is required ";
+  public static final String EMAIL_NOT_MATCH = "Email does not match requesting user ";
   public static final String OPEN_API_APPLICATION_PATH = "/api/v1/application";
   public static final String OPEN_API_BEAN_METHOD_SAVE_APPLICATION = "listenSaveApplication";
   public static final String OPEN_API_OPERATION_ID = "saveApplication";
