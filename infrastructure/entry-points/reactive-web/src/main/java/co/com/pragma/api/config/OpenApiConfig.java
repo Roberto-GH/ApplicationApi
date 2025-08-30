@@ -1,5 +1,6 @@
 package co.com.pragma.api.config;
 
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -10,17 +11,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
   info = @Info(
-    title = "Application API",
-    version = "1.0.0",
-    description = "API for applications management."
+    title = ApplicationWebKeys.OPEN_API_TITLE,
+    version = ApplicationWebKeys.OPEN_API_VERSION,
+    description = ApplicationWebKeys.OPEN_API_DESCRIPTION
   ),
-  security = @SecurityRequirement(name = "bearerAuth")
+  security = @SecurityRequirement(name = ApplicationWebKeys.OPEN_API_SECURITY_NAME)
 )
 @SecurityScheme(
-  name = "bearerAuth",
+  name = ApplicationWebKeys.OPEN_API_SECURITY_NAME,
   type = SecuritySchemeType.HTTP,
-  scheme = "bearer",
-  bearerFormat = "JWT"
+  scheme = ApplicationWebKeys.OPEN_API_SCHEME,
+  bearerFormat = ApplicationWebKeys.OPEN_API_BEARER_FORMAT
 )
 public class OpenApiConfig {
 }

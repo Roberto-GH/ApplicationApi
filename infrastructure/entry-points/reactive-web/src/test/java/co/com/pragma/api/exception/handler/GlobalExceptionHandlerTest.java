@@ -1,6 +1,7 @@
 package co.com.pragma.api.exception.handler;
 
 import co.com.pragma.api.exception.ApplicationApiException;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -58,7 +58,7 @@ class TestRouter {
   public RouterFunction<ServerResponse> testRoutes() {
     return RouterFunctions
       .route()
-      .GET("/test-exception", request -> Mono.error(new ApplicationApiException("Test Exception", HttpStatus.UNAUTHORIZED)))
+      .GET("/test-exception", request -> Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, "Test Exception")))
       .build();
   }
 

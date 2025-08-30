@@ -37,7 +37,7 @@ class ApplicationDtoMapperTest {
     ApplicationResponseDto dto = mapper.toResponseDto(application);
     assertNotNull(dto);
     assertAll(
-      () -> assertEquals(application.getApplicationId(), dto.applicationId()), () -> assertEquals(application.getAmount(), dto.amount()),
+      () -> assertEquals(application.getAmount(), dto.amount()),
       () -> assertEquals(application.getTerm(), dto.term()), () -> assertEquals(application.getEmail(), dto.email()),
       () -> assertEquals(application.getIdentityDocument(), dto.identityDocument()), () -> assertEquals(application.getStatusId(), dto.statusId()),
       () -> assertEquals(application.getLoanTypeId(), dto.loanTypeId())

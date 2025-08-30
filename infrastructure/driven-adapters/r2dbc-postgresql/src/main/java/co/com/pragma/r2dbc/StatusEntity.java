@@ -1,5 +1,6 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.r2dbc.constants.PostgreSQLKeys;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,8 +8,6 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-
-import java.util.UUID;
 
 @Table("status")
 @NoArgsConstructor
@@ -18,7 +17,7 @@ import java.util.UUID;
 public class StatusEntity {
 
   @Id
-  @Column("status_id")
+  @Column(PostgreSQLKeys.COLUMN_NAME_STATUS_ID)
   private Long statusId;
   private String name;
   private String description;

@@ -1,5 +1,6 @@
 package co.com.pragma.model.application.validation;
 
+import co.com.pragma.model.application.exception.DomainValidationException;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 

@@ -1,5 +1,6 @@
 package co.com.pragma.r2dbc.config;
 
+import co.com.pragma.r2dbc.constants.PostgreSQLKeys;
 import io.r2dbc.pool.ConnectionPool;
 import io.r2dbc.pool.ConnectionPoolConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
@@ -15,10 +16,6 @@ import java.time.Duration;
 @Configuration
 public class PostgreSQLConnectionPool {
 
-  public static final int INITIAL_SIZE = 12;
-  public static final int MAX_SIZE = 15;
-  public static final int MAX_IDLE_TIME = 30;
-
   @Bean
   public ConnectionPool getConnectionConfig(PostgresqlConnectionProperties properties) {
     PostgresqlConnectionConfiguration dbConfiguration = PostgresqlConnectionConfiguration
@@ -33,11 +30,11 @@ public class PostgreSQLConnectionPool {
     ConnectionPoolConfiguration poolConfiguration = ConnectionPoolConfiguration
       .builder()
       .connectionFactory(new PostgresqlConnectionFactory(dbConfiguration))
-      .name("api-postgres-connection-pool")
-      .initialSize(INITIAL_SIZE)
-      .maxSize(MAX_SIZE)
-      .maxIdleTime(Duration.ofMinutes(MAX_IDLE_TIME))
-      .validationQuery("SELECT 1")
+      .name(PostgreSQLKeys.API_POSTGRESS_CONNECTION_POOL)
+      .initialSize(PostgreSQLKeys.INITIAL_SIZE)
+      .maxSize(PostgreSQLKeys.MAX_SIZE)
+      .maxIdleTime(Duration.ofMinutes(PostgreSQLKeys.MAX_IDLE_TIME))
+      .validationQuery(PostgreSQLKeys.VALIDATION_QUERY)
       .build();
     return new ConnectionPool(poolConfiguration);
   }

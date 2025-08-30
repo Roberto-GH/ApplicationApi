@@ -1,5 +1,6 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.r2dbc.constants.PostgreSQLKeys;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,16 +20,16 @@ import java.util.UUID;
 public class ApplicationEntity {
 
   @Id
-  @Column("application_id")
+  @Column(PostgreSQLKeys.COLUMN_NAME_APPLICATION_ID)
   private UUID applicationId;
   private BigDecimal amount;
   private String term;
   private String email;
-  @Column("identity_document")
+  @Column(PostgreSQLKeys.COLUMN_NAME_IDENTITY)
   private Long identityDocument;
-  @Column("status_id")
+  @Column(PostgreSQLKeys.COLUMN_NAME_STATUS_ID)
   private Long statusId;
-  @Column("loan_type_id")
+  @Column(PostgreSQLKeys.COLUMN_NAME_LOAN_TYPE_ID)
   private Long loanTypeId;
 
 }

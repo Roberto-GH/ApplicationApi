@@ -1,5 +1,6 @@
 package co.com.pragma.api.config;
 
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,10 +19,10 @@ public class CorsConfig {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowCredentials(true);
     config.setAllowedOrigins(List.of(origins.split(",")));
-    config.setAllowedMethods(Arrays.asList("POST", "GET"));
+    config.setAllowedMethods(Arrays.asList(ApplicationWebKeys.POST_METHOD, ApplicationWebKeys.GET_METHOD));
     config.setAllowedHeaders(List.of(CorsConfiguration.ALL));
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
+    source.registerCorsConfiguration(ApplicationWebKeys.REGISTER_CORS_PATH, config);
     return new CorsWebFilter(source);
   }
 

@@ -1,5 +1,6 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.r2dbc.constants.PostgreSQLKeys;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,16 +19,16 @@ import java.math.BigDecimal;
 public class LoanTypeEntity {
 
   @Id
-  @Column("loan_type_id")
+  @Column(PostgreSQLKeys.COLUMN_NAME_LOAN_TYPE_ID)
   private Long loanTypeId;
   private String name;
-  @Column("minimum_amount")
+  @Column(PostgreSQLKeys.COLUMN_NAME_MINIMUN_AMOUNT)
   private BigDecimal minimumAmount;
-  @Column("maximum_amount")
+  @Column(PostgreSQLKeys.COLUMN_NAME_MAXIMUN_AMOUNT)
   private BigDecimal maximumAmount;
-  @Column("interest_rate")
+  @Column(PostgreSQLKeys.COLUMN_NAME_INTEREST_RATE)
   private BigDecimal interestRate;
-  @Column("automatic_validation")
+  @Column(PostgreSQLKeys.COLUMN_NAME_AUTOMATIC_VALIDATION)
   private Boolean automaticValidation;
 
 }
