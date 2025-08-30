@@ -1,5 +1,6 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.r2dbc.constants.PostgreSQLKeys;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

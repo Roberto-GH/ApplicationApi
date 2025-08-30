@@ -1,6 +1,6 @@
 package co.com.pragma.r2dbc.config;
 
-import co.com.pragma.r2dbc.PostgreSQLKeys;
+import co.com.pragma.r2dbc.constants.PostgreSQLKeys;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = PostgreSQLKeys.PATH_CONFIG_R2DBC)

@@ -1,5 +1,6 @@
 package co.com.pragma.api;
 
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import co.com.pragma.api.dto.ApplicationResponseDto;
 import co.com.pragma.api.dto.CreateApplicationDto;
 import co.com.pragma.api.exception.ApplicationApiException;

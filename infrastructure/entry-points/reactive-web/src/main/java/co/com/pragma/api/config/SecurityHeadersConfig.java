@@ -1,6 +1,6 @@
 package co.com.pragma.api.config;
 
-import co.com.pragma.api.ApplicationWebKeys;
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;

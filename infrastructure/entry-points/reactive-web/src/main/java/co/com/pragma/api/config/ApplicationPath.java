@@ -1,6 +1,6 @@
 package co.com.pragma.api.config;
 
-import co.com.pragma.api.ApplicationWebKeys;
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

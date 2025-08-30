@@ -1,6 +1,6 @@
 package co.com.pragma.api.config;
 
-import co.com.pragma.api.ApplicationWebKeys;
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

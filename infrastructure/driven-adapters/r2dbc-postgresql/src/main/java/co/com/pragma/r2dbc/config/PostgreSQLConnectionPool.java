@@ -1,6 +1,6 @@
 package co.com.pragma.r2dbc.config;
 
-import co.com.pragma.r2dbc.PostgreSQLKeys;
+import co.com.pragma.r2dbc.constants.PostgreSQLKeys;
 import io.r2dbc.pool.ConnectionPool;
 import io.r2dbc.pool.ConnectionPoolConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;

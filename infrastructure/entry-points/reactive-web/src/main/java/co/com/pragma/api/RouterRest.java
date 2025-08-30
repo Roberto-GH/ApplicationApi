@@ -1,6 +1,7 @@
 package co.com.pragma.api;
 
 import co.com.pragma.api.config.ApplicationPath;
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import co.com.pragma.api.dto.ApplicationResponseDto;
 import co.com.pragma.api.dto.CreateApplicationDto;
 import io.swagger.v3.oas.annotations.Operation;

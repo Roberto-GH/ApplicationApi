@@ -1,5 +1,6 @@
 package co.com.pragma.api.jwt;
 
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -30,13 +31,13 @@ public class JwtProvider {
     try {
       Jwts.parser().verifyWith(getKey(secret)).build().parseSignedClaims(token).getPayload().getSubject();
     } catch (ExpiredJwtException e) {
-      LOG.severe("token expired");
+      LOG.severe(ApplicationWebKeys.TOKEN_EXPIRED);
     } catch (MalformedJwtException e) {
-      LOG.severe("token malformed");
+      LOG.severe(ApplicationWebKeys.TOKEN_MALFORMED);
     } catch (SignatureException e) {
-      LOG.severe("bad signature");
+      LOG.severe(ApplicationWebKeys.BAD_SIGNATURE);
     } catch (IllegalArgumentException e) {
-      LOG.severe("illegal args");
+      LOG.severe(ApplicationWebKeys.ILLEGAL_ARGS);
     }
   }
 

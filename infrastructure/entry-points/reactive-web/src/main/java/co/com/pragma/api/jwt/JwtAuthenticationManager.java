@@ -1,9 +1,8 @@
 package co.com.pragma.api.jwt;
 
-import co.com.pragma.api.ApplicationWebKeys;
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import co.com.pragma.api.exception.AuthenticationApiException;
 import co.com.pragma.model.application.exception.ErrorEnum;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

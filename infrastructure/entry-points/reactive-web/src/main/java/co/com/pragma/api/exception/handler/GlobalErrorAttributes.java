@@ -1,6 +1,6 @@
 package co.com.pragma.api.exception.handler;
 
-import co.com.pragma.api.ApplicationWebKeys;
+import co.com.pragma.api.constants.ApplicationWebKeys;
 import co.com.pragma.model.application.exception.CustomException;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import org.slf4j.Logger;
