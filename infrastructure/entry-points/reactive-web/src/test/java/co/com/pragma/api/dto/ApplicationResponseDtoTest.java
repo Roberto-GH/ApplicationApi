@@ -21,10 +21,9 @@ class ApplicationResponseDtoTest {
     Long loanTypeId = 2L;
 
     ApplicationResponseDto dto = new ApplicationResponseDto(
-      applicationId, amount, term, email, identityDocument, statusId, loanTypeId
+      amount, term, email, identityDocument, statusId, loanTypeId
     );
     assertAll(
-      () -> assertEquals(applicationId, dto.applicationId()),
       () -> assertEquals(amount, dto.amount()),
       () -> assertEquals(term, dto.term()),
       () -> assertEquals(email, dto.email()),

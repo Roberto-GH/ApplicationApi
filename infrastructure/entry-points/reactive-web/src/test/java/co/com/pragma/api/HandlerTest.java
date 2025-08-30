@@ -52,7 +52,7 @@ class HandlerTest {
     );
     application = Application.builder().build();
     applicationResponseDto = new ApplicationResponseDto(
-      application.getApplicationId(), application.getAmount(), application.getTerm(), application.getEmail(),
+      application.getAmount(), application.getTerm(), application.getEmail(),
       application.getIdentityDocument(), application.getStatusId(), application.getLoanTypeId()
     );
   }
