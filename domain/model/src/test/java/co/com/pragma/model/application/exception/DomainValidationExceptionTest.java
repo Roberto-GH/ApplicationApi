@@ -1,4 +1,4 @@
-package co.com.pragma.model.application.validation;
+package co.com.pragma.model.application.exception;
 
 import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.exception.ErrorEnum;
@@ -12,6 +12,13 @@ class DomainValidationExceptionTest {
   void testException() {
     DomainValidationException exception = new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, "test message");
     assertEquals("test message", exception.getMessage());
+    assertEquals(400, exception.getStatus());
+  }
+
+  @Test
+  void testExceptionWithDefaultMessage() {
+    DomainValidationException exception = new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA);
+    assertEquals(ErrorEnum.INVALID_APPLICATION_DATA.getDefaultMessage(), exception.getMessage());
     assertEquals(400, exception.getStatus());
   }
 

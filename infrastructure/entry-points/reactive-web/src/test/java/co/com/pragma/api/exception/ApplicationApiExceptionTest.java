@@ -19,4 +19,14 @@ class ApplicationApiExceptionTest {
     );
   }
 
+  @Test
+  void testExceptionWithDefaultMessage() {
+    ApplicationApiException exception = new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA);
+    Assertions.assertAll(
+      () -> assertEquals(ErrorEnum.INVALID_APPLICATION_DATA.getDefaultMessage(), exception.getMessage()),
+      () -> assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getStatus()),
+      () -> assertEquals(ErrorEnum.INVALID_APPLICATION_DATA.getCode(), exception.getErrorCode())
+    );
+  }
+
 }

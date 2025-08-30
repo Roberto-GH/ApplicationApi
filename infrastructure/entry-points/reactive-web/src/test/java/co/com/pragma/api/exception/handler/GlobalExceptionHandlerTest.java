@@ -18,7 +18,7 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-@WebFluxTest
+@WebFluxTest(excludeAutoConfiguration = {org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration.class})
 @ContextConfiguration(classes = {
   GlobalExceptionHandler.class,
   TestRouter.class
@@ -46,6 +46,16 @@ class GlobalExceptionHandlerTest {
       .uri("/test-exception")
       .exchange()
       .expectStatus()
+      .isBadRequest();
+  }
+
+  @Test
+  void testHandleExceptionWithUnauthorized() {
+    webTestClient
+      .get()
+      .uri("/test-unauthorized")
+      .exchange()
+      .expectStatus()
       .isUnauthorized();
   }
 
@@ -59,6 +69,7 @@ class TestRouter {
     return RouterFunctions
       .route()
       .GET("/test-exception", request -> Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, "Test Exception")))
+      .GET("/test-unauthorized", request -> Mono.error(new ApplicationApiException(ErrorEnum.UNAUTHORIZED_ACCESS, "Test Unauthorized")))
       .build();
   }
 
