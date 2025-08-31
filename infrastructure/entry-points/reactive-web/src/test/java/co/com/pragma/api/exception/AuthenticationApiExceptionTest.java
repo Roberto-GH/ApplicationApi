@@ -13,4 +13,11 @@ class AuthenticationApiExceptionTest {
     assertEquals("test message", exception.getMessage());
     assertEquals(ErrorEnum.UNAUTHORIZED_ACCESS.getStatus(), exception.getStatus());
   }
+
+  @Test
+  void testExceptionWithDefaultMessage() {
+    AuthenticationApiException exception = new AuthenticationApiException(ErrorEnum.UNAUTHORIZED_ACCESS);
+    assertEquals(ErrorEnum.UNAUTHORIZED_ACCESS.getDefaultMessage(), exception.getMessage());
+    assertEquals(ErrorEnum.UNAUTHORIZED_ACCESS.getStatus(), exception.getStatus());
+  }
 }

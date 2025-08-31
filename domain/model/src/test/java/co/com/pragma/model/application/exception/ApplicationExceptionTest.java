@@ -20,4 +20,14 @@ class ApplicationExceptionTest {
     );
   }
 
+  @Test
+  void testApplicationExceptionWithDefaultMessage() {
+    ApplicationException exception = new ApplicationException(ErrorEnum.INVALID_APPLICATION_DATA);
+    assertEquals(code, exception.getStatus());
+    Assertions.assertAll(
+      () -> assertEquals(code, exception.getStatus()),
+      () -> assertEquals(ErrorEnum.INVALID_APPLICATION_DATA.getDefaultMessage(), exception.getMessage())
+    );
+  }
+
 }
