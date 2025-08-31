@@ -27,5 +27,7 @@ public class ApplicationDataEntity {
   private BigDecimal interestRate;
   @Column("application_status")
   private String applicationStatus;
+  @Column("status_id")
+  private Long statusId;
 
 }

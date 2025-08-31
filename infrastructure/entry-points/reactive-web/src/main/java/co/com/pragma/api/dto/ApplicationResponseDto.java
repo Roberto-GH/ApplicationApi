@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 @Builder
 public record ApplicationResponseDto(
   BigDecimal amount,
-  String term,
+  Integer term,
   String email,
   Long identityDocument,
   Long statusId,

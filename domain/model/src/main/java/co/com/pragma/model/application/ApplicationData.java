@@ -16,12 +16,14 @@ public class ApplicationData {
 
   private UUID id;
   private BigDecimal amount;
-  private String term;
+  private Integer term;
   private String email;
   private String loanType;
   private BigDecimal interestRate;
   private String applicationStatus;
+  private Long statusId;
+  private String name;
+  private Long baseSalary;
+  private BigDecimal totalMonthlyPayment;
 
 }
-
-

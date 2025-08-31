@@ -5,13 +5,11 @@ spring:
     name: "ApplicationApi"
   devtools:
     add-properties: false
-
 logging:
   level:
     org:
       springframework:
-        web: DEBUG
-
+        web: "DEBUG"
 management:
   endpoints:
     web:
@@ -21,15 +19,16 @@ management:
     health:
       probes:
         enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
-
 routes:
   application:
     paths:
       application: "/api/v1/application"
       applications: "/api/v1/applications"
-
 adapters:
   r2dbc:
     host: "localhost"
@@ -38,6 +37,32 @@ adapters:
     schema: "public"
     username: "postgres"
     password: "postgres"
-
 jwt:
   secret: "EstaEsUnaClaveSecretaMuyLargaParaQueSeaSeguraYCumplaConLosRequisitosDelAlgoritmo"
+adapter:
+  restconsumer:
+    timeout: 5000
+    url: "http://localhost:8080"
+    email: roberto.admin@gmail.com
+    password: 123456789
+resilience4j:
+  circuitbreaker:
+    instances:
+      fallbackFindUserByEmail:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: "2s"
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 10
+        waitDurationInOpenState: "10s"
+      fallbackGetToken:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: "2s"
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 10
+        waitDurationInOpenState: "10s"

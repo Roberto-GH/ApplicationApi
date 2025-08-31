@@ -17,7 +17,8 @@ public interface ApplicationReactiveRepository extends ReactiveCrudRepository<Ap
          "a.email, " +
          "lt.name AS loan_type, " +
          "lt.interest_rate, " +
-         "s.name AS application_status " +
+         "s.name AS application_status, " +
+         "s.status_id " +
          "FROM applications a " +
          "LEFT JOIN type_of_loan lt ON a.loan_type_id = lt.loan_type_id " +
          "LEFT JOIN status s ON a.status_id = s.status_id " +

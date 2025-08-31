@@ -8,7 +8,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class ObjectMapperConfigTest {
+class ObjectDtoMapperConfigTest {
 
   @Test
   void testObjectMapperBean() {
