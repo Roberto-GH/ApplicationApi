@@ -1,6 +1,7 @@
 package co.com.pragma.usecase.application;
 
 import co.com.pragma.model.application.Application;
+import co.com.pragma.model.application.ApplicationList;
 import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
@@ -42,6 +43,23 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
       .then(Mono.just(application))
       .doOnNext(validatedApp -> LOG.info(ApplicationUseCaseKeys.APPLICATION_VALIDATED_SUCCESSFULLY + validatedApp.getEmail()))
       .flatMap(applicationRepository::saveApplication);
+  }
+
+  @Override
+  public Mono<ApplicationList> getApplicationsByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber) {
+    return applicationRepository.countByStatusAndLoanType(status, loanType)
+      .flatMap(totalRecords -> {
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+        return applicationRepository.findByStatusAndLoanType(status, loanType, pageSize, pageNumber)
+          .collectList()
+          .map(applications -> ApplicationList.builder()
+            .pageNumber(pageNumber)
+            .pageSize(pageSize)
+            .totalRecords(totalRecords.intValue())
+            .totalPages(totalPages)
+            .data(applications)
+            .build());
+      });
   }
 
 }

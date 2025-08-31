@@ -11,5 +11,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ApplicationPath {
 
   private String application;
+  private String applications;
 
 }

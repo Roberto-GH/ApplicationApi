@@ -28,6 +28,7 @@ routes:
   application:
     paths:
       application: "/api/v1/application"
+      applications: "/api/v1/applications"
 
 adapters:
   r2dbc:

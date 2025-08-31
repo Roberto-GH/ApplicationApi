@@ -60,4 +60,24 @@ public class Handler {
         .flatMap(reponseUser -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(reponseUser)));
   }
 
+  @PreAuthorize("hasRole('ADVISOR')")
+  public Mono<ServerResponse> listenGetApplications(ServerRequest serverRequest) {
+    return Mono.just(serverRequest)
+      .flatMap(req -> Mono.justOrEmpty(req.queryParam("pageSize"))
+        .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, "pageSize is required")))
+        .map(Integer::parseInt)
+        .flatMap(pageSize -> Mono.justOrEmpty(req.queryParam("pageNumber"))
+          .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, "pageNumber is required")))
+          .map(Integer::parseInt)
+          .flatMap(pageNumber -> {
+            Integer status = req.queryParam("status").map(Integer::parseInt).orElse(null);
+            Integer loanType = req.queryParam("loanType").map(Integer::parseInt).orElse(null);
+            return applicationControllerUseCase.getApplicationsByStatusAndLoanType(status, loanType, pageSize, pageNumber);
+          })
+        )
+      )
+      .flatMap(paginationResponse -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(applicationDtoMapper.toApplicationListDto(paginationResponse)));
+  }
+
 }

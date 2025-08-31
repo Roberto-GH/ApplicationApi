@@ -4,7 +4,9 @@ import co.com.pragma.api.config.ApplicationPath;
 import co.com.pragma.api.constants.ApplicationWebKeys;
 import co.com.pragma.api.dto.ApplicationResponseDto;
 import co.com.pragma.api.dto.CreateApplicationDto;
+import co.com.pragma.api.dto.ApplicationListResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY;
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -45,11 +49,32 @@ public class RouterRest {
         )
       },
         requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = CreateApplicationDto.class)))
+      )),
+    @RouterOperation(
+      path = ApplicationWebKeys.OPEN_API_APPLICATION_PATH,
+      method = RequestMethod.GET,
+      beanClass = Handler.class,
+      beanMethod = "listenGetApplications",
+      operation = @Operation(
+        operationId = "getApplications",
+        summary = "Get applications with optional filters",
+        parameters = {
+          @Parameter(in = QUERY, name = "status", description = "Filter by application status", required = false),
+          @Parameter(in = QUERY, name = "loanType", description = "Filter by loan type", required = false)
+        },
+        responses = {
+          @ApiResponse(
+            responseCode = ApplicationWebKeys.OPEN_API_RESPONSE_CODE,
+            description = ApplicationWebKeys.OPEN_API_DESCRIPTION_SUCCESS,
+            content = @Content(mediaType = ApplicationWebKeys.OPEN_API_MEDIA_TYPE,
+              schema = @Schema(implementation = ApplicationListResponseDto.class)))
+        }
       ))
   })
   @Bean
   public RouterFunction<ServerResponse> routerFunction(Handler handler) {
-    return route(POST(applicationPath.getApplication()), handler::listenSaveApplication);
+    return route(POST(applicationPath.getApplication()), handler::listenSaveApplication)
+      .andRoute(GET(applicationPath.getApplications()), handler::listenGetApplications);
   }
 
 }
