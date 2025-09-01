@@ -7,6 +7,7 @@ import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.LoanTypeRepository;
+import co.com.pragma.model.application.gateways.StatusRepository;
 import co.com.pragma.model.application.validation.*;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
 import co.com.pragma.usecase.application.constants.ApplicationUseCaseKeys;
@@ -29,10 +30,12 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
 
   private final ApplicationRepository applicationRepository;
   private final LoanTypeRepository loanTypeRepository;
+  private final StatusRepository statusRepository;
 
-  public ApplicationUseCase(ApplicationRepository applicationRepository, LoanTypeRepository loanTypeRepository) {
+  public ApplicationUseCase(ApplicationRepository applicationRepository, LoanTypeRepository loanTypeRepository, StatusRepository statusRepository) {
     this.applicationRepository = applicationRepository;
     this.loanTypeRepository = loanTypeRepository;
+    this.statusRepository = statusRepository;
   }
 
   @Override
@@ -51,21 +54,34 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
 
   @Override
   public Mono<ApplicationList> getApplicationsByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber) {
-    return applicationRepository.countByStatusAndLoanType(status, loanType)
+    Mono<Void> validationMono = Mono.empty();
+    if (status != null) {
+      validationMono = validationMono.then(statusRepository.findById(Long.valueOf(status))
+        .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.STATUS_ID_NOT_EXIST + status)))
+        .then());
+    }
+    if (loanType != null) {
+      validationMono = validationMono.then(loanTypeRepository.findById(Long.valueOf(loanType))
+        .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.LOAN_ID_NOT_EXIST + loanType)))
+        .then());
+    }
+    return validationMono.then(applicationRepository.countByStatusAndLoanType(status, loanType)
       .flatMap(totalRecords -> {
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
         return applicationRepository.findByStatusAndLoanType(status, loanType, pageSize, pageNumber)
           .map(this::calculateTotalMonthlyPayment)
           .collectList()
-          .map(applications -> ApplicationList.builder()
+          .map(applications -> ApplicationList
+            .builder()
             .pageNumber(pageNumber)
             .pageSize(pageSize)
             .totalRecords(totalRecords.intValue())
             .totalPages(totalPages)
             .data(applications)
             .build());
-      });
+      }));
   }
+
 
   private ApplicationData calculateTotalMonthlyPayment(ApplicationData appData) {
     LOG.info(ApplicationUseCaseKeys.APPLICATION_STATUS + appData.getStatusId() + " - " + appData.getApplicationStatus());

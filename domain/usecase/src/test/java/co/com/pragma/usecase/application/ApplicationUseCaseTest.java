@@ -1,12 +1,10 @@
 package co.com.pragma.usecase.application;
 
-import co.com.pragma.model.application.Application;
-import co.com.pragma.model.application.ApplicationData;
-import co.com.pragma.model.application.ApplicationList;
-import co.com.pragma.model.application.LoanType;
+import co.com.pragma.model.application.*;
 import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.LoanTypeRepository;
+import co.com.pragma.model.application.gateways.StatusRepository;
 import co.com.pragma.usecase.application.constants.ApplicationUseCaseKeys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +36,8 @@ class ApplicationUseCaseTest {
 
   @Mock
   private ApplicationRepository applicationRepository;
+  @Mock
+  private StatusRepository statusRepository;
   @Mock
   private LoanTypeRepository loanTypeRepository;
   @InjectMocks
@@ -105,6 +105,10 @@ class ApplicationUseCaseTest {
     appData2.setInterestRate(new BigDecimal("5.00")); // 5% annual
     appData2.setStatusId(2L);
     appData2.setApplicationStatus("Aprobada");
+
+    when(statusRepository.findById(any(Long.class))).thenReturn(Mono.just(Status.builder().statusId(2L).name("Aprobada").build()));
+    when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
+
     when(applicationRepository.countByStatusAndLoanType(anyInt(), anyInt())).thenReturn(Mono.just(totalRecords));
     when(applicationRepository.findByStatusAndLoanType(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.just(appData1, appData2));
 
@@ -132,6 +136,8 @@ class ApplicationUseCaseTest {
     Integer pageSize = 10;
     Integer pageNumber = 0;
     Long totalRecords = 0L;
+    when(statusRepository.findById(any(Long.class))).thenReturn(Mono.just(Status.builder().statusId(2L).name("Aprobada").build()));
+    when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
     when(applicationRepository.countByStatusAndLoanType(anyInt(), anyInt())).thenReturn(Mono.just(totalRecords));
     when(applicationRepository.findByStatusAndLoanType(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.empty());
     Mono<ApplicationList> result = applicationUseCase.getApplicationsByStatusAndLoanType(status, loanType, pageSize, pageNumber);
@@ -160,6 +166,8 @@ class ApplicationUseCaseTest {
     "12000.00,12,10.00,1,"
   })
   void getApplicationsByStatusAndLoanType_calculationEdgeCases(BigDecimal amount, Integer term, BigDecimal interestRate, Long statusId, BigDecimal total) {
+    when(statusRepository.findById(any(Long.class))).thenReturn(Mono.just(Status.builder().statusId(2L).name("Aprobada").build()));
+    when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
     when(applicationRepository.countByStatusAndLoanType(anyInt(), anyInt())).thenReturn(Mono.just(1L));
     when(applicationRepository.findByStatusAndLoanType(anyInt(), anyInt(), anyInt(), anyInt()))
       .thenAnswer(invocation -> {
@@ -192,7 +200,8 @@ class ApplicationUseCaseTest {
     appData9.setInterestRate(new BigDecimal("-5.00"));
     appData9.setStatusId(2L);
     appData9.setTotalMonthlyPayment(BigDecimal.ZERO);
-
+    when(statusRepository.findById(any(Long.class))).thenReturn(Mono.just(Status.builder().statusId(2L).name("Aprobada").build()));
+    when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
     when(applicationRepository.countByStatusAndLoanType(anyInt(), anyInt())).thenReturn(Mono.just(totalRecords));
     when(applicationRepository.findByStatusAndLoanType(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.just(appData9));
 

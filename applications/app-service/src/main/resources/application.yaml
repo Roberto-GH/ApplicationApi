@@ -44,7 +44,7 @@ adapter:
     timeout: 5000
     url: "http://localhost:8080"
     email: roberto.admin@gmail.com
-    password: 123456789
+    password: Pass_1234
 resilience4j:
   circuitbreaker:
     instances:

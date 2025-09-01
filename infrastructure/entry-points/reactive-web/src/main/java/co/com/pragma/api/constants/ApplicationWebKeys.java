@@ -62,6 +62,9 @@ public class ApplicationWebKeys {
   public static final String PARAM_LOAN_TYPE_DESCRIPTION = "Filter by loan type";
   public static final String ERROR_PAGE_SIZE = "pageSize is required";
   public static final String ERROR_PAGE_NUMBER = "pageNumber is required";
+  public static final String ERROR_STATUS_INVALID = "status is invalid";
+  public static final String ERROR_LOAN_TYPE_INVALID = "loanType is invalid";
+  public static final String WRITTING_JSON_ERROR = "{\"error\":\"Error writing JSON output\"}";
 
   public static final String[] ALLOWED_PATHS = new String[]{"/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/swagger-ui/**"};
 
