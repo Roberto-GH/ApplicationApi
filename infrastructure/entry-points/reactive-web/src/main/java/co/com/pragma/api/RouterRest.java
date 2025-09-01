@@ -54,13 +54,15 @@ public class RouterRest {
       path = ApplicationWebKeys.OPEN_API_APPLICATION_PATH,
       method = RequestMethod.GET,
       beanClass = Handler.class,
-      beanMethod = "listenGetApplications",
+      beanMethod = ApplicationWebKeys.OPEN_API_BEAN_METHOD_GET_APPLICATIONS,
       operation = @Operation(
-        operationId = "getApplications",
-        summary = "Get applications with optional filters",
+        operationId = ApplicationWebKeys.OPEN_API_OPERATION_GET_APPLICATIONS,
+        summary = ApplicationWebKeys.OPEN_API_SUMMARY_GET_APPLICATIONS,
         parameters = {
-          @Parameter(in = QUERY, name = "status", description = "Filter by application status", required = false),
-          @Parameter(in = QUERY, name = "loanType", description = "Filter by loan type", required = false)
+          @Parameter(in = QUERY, name = ApplicationWebKeys.PARAM_STATUS, description =ApplicationWebKeys. PARAM_STATUS_DESCRIPTION),
+          @Parameter(in = QUERY, name = ApplicationWebKeys.PARAM_LOAN_TYPE, description = ApplicationWebKeys.PARAM_LOAN_TYPE_DESCRIPTION),
+          @Parameter(in = QUERY, name = ApplicationWebKeys.PARAM_PAGE_SIZE, description = ApplicationWebKeys.PARAM_PAGE_SIZE_DESCRIPTION),
+          @Parameter(in = QUERY, name = ApplicationWebKeys.PARAM_PAGE_NUMBER, description = ApplicationWebKeys.PARAM_PAGE_NUMBER_DESCRIPTION)
         },
         responses = {
           @ApiResponse(

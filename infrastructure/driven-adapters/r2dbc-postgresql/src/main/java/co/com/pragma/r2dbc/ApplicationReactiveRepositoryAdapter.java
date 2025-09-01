@@ -4,6 +4,7 @@ import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.ApplicationData;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.UserRestGateway;
+import co.com.pragma.r2dbc.constants.PostgreSQLKeys;
 import co.com.pragma.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.slf4j.Logger;
@@ -42,14 +43,14 @@ public class ApplicationReactiveRepositoryAdapter
   private Mono<ApplicationData> completeWithUserData(ApplicationData appData) {
     return userRestGateway.findUserByEmail(appData.getEmail())
       .map(user -> {
-          log.info("Completando ApplicationData con datos del usuario: {}", user.getEmail());
+          log.info(PostgreSQLKeys.INFO_POPULATING_DATA + user.getEmail());
           appData.setName(user.getFirstName());
           appData.setBaseSalary(user.getBaseSalary());
           return appData;
       })
       .defaultIfEmpty(appData)
       .onErrorResume(error -> {
-          log.error("Error al consultar usuario con email: {}. Se retornará ApplicationData sin completar.", appData.getEmail(), error);
+          log.error(PostgreSQLKeys.INC0MPLETE_DATA + appData.getEmail(), error.getMessage());
           return Mono.just(appData);
       });
   }

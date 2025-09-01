@@ -67,7 +67,7 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
   }
 
   private ApplicationData calculateTotalMonthlyPayment(ApplicationData appData) {
-    LOG.info("Estado de la solicitud: " + appData.getStatusId() + " - " + appData.getApplicationStatus());
+    LOG.info(ApplicationUseCaseKeys.APPLICATION_STATUS + appData.getStatusId() + " - " + appData.getApplicationStatus());
     if(appData.getStatusId() != 2L) {
       return appData;
     }
@@ -81,17 +81,17 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
     // Convert annual percentage rate to monthly decimal rate
     BigDecimal monthlyRate = annualInterestRate.divide(new BigDecimal("100"), MathContext.DECIMAL128)
                                                .divide(new BigDecimal("12"), MathContext.DECIMAL128);
-    // M = P * [r(1+r)^n] / [(1+r)^n – 1]
-    BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate);
-    BigDecimal onePlusRToTheN = onePlusR.pow(termInMonths, MathContext.DECIMAL128);
-    BigDecimal denominator = onePlusRToTheN.subtract(BigDecimal.ONE);
+    //Fórmula de Amortización (Fórmula de la Anualidad) => M = P * [r(1+r)^n] / [(1+r)^n – 1]
+    BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate);//(1 + r)
+    BigDecimal onePlusRToTheN = onePlusR.pow(termInMonths, MathContext.DECIMAL128);//(1 + r)^n
+    BigDecimal denominator = onePlusRToTheN.subtract(BigDecimal.ONE);//[(1+r)^n – 1]
     // Avoid division by zero if interest rate is 0, which makes denominator 0
     if (denominator.compareTo(BigDecimal.ZERO) == 0) {
         appData.setTotalMonthlyPayment(principal.divide(BigDecimal.valueOf(termInMonths), 2, RoundingMode.HALF_UP));
         return appData;
     }
-    BigDecimal numerator = monthlyRate.multiply(onePlusRToTheN);
-    BigDecimal monthlyPayment = principal.multiply(numerator).divide(denominator, 2, RoundingMode.HALF_UP);
+    BigDecimal numerator = monthlyRate.multiply(onePlusRToTheN);//r(1+r)^n
+    BigDecimal monthlyPayment = principal.multiply(numerator).divide(denominator, 2, RoundingMode.HALF_UP);//P *(numerador / denominador)
     appData.setTotalMonthlyPayment(monthlyPayment);
     return appData;
   }

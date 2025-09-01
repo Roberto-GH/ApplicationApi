@@ -1,6 +1,9 @@
 package co.com.pragma.consumer;
 
+import co.com.pragma.consumer.constants.RestConsumerKeys;
+import co.com.pragma.consumer.exception.RestConsumerException;
 import co.com.pragma.model.application.User;
+import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.model.application.gateways.UserRestGateway;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,22 +29,22 @@ public class RestConsumer implements UserRestGateway {
     this.servicePassword = servicePassword;
   }
 
-  @CircuitBreaker(name = "findUserByEmail", fallbackMethod = "fallbackFindUserByEmail")
+  @CircuitBreaker(name = RestConsumerKeys.FUNCTION_FIND_USER_BY_EMAIL, fallbackMethod = RestConsumerKeys.FALLBACK_FIND_USER_BY_EMAIL)
   @Override
   public Mono<User> findUserByEmail(String mail) {
     return getToken().flatMap(tokenResponse -> {
       String token = tokenResponse.getToken();
       return client
         .get()
-        .uri("/api/v1/user/{email}", mail)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        .uri(RestConsumerKeys.PATH_URI_EMAIL, mail)
+        .header(HttpHeaders.AUTHORIZATION, RestConsumerKeys.BEARER + token)
         .retrieve()
         .bodyToMono(UserResponseDto.class)
         .map(dtoMapper::toUser);
     });
   }
 
-  @CircuitBreaker(name = "getToken", fallbackMethod = "fallbackGetToken")
+  @CircuitBreaker(name = RestConsumerKeys.FUNCTION_GET_TOKEN, fallbackMethod = RestConsumerKeys.FALLBACK_GET_TOKEN)
   public Mono<TokenResponse> getToken() {
     LoginRequest login = LoginRequest
       .builder()
@@ -50,18 +53,18 @@ public class RestConsumer implements UserRestGateway {
       .build();
     return client
       .post()
-      .uri("/auth/v1/login")
+      .uri(RestConsumerKeys.PATH_URI_AUTH)
       .bodyValue(login)
       .retrieve()
       .bodyToMono(TokenResponse.class);
   }
 
   public Mono<User> fallbackFindUserByEmail(String mail, Exception ex) {
-    return Mono.error(new RuntimeException("Fallback: Error al consultar el usuario por email: " + mail + " -- " + ex.getMessage()));
+    return Mono.error(new RestConsumerException(ErrorEnum.INTERNAL_CONFLIC_SERVER, RestConsumerKeys.ERROR_FALLBACK_EMAIL + mail + " -- " + ex.getMessage()));
   }
 
   public Mono<TokenResponse> fallbackGetToken(Exception ex) {
-    return Mono.error(new RuntimeException("Fallback: Error al obtener el token de servicio. " + ex.getMessage()));
+    return Mono.error(new RestConsumerException(ErrorEnum.INTERNAL_CONFLIC_SERVER, RestConsumerKeys.ERROR_FALLBACK_TOKEN + ex.getMessage()));
   }
 
 }

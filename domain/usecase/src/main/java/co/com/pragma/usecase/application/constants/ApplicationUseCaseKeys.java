@@ -12,5 +12,6 @@ public class ApplicationUseCaseKeys {
   public static final String EMAIL_FIELD = "email";
   public static final String DOCUMENT_FIELD = "identityDocument";
   public static final String AMOUNT_FIELD = "amount";
+  public static final String APPLICATION_STATUS = "Application Status ";
 
 }

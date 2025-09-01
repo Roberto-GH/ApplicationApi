@@ -1,5 +1,6 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.r2dbc.constants.PostgreSQLKeys;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,13 +22,13 @@ public class ApplicationDataEntity {
   private BigDecimal amount;
   private String term;
   private String email;
-  @Column("loan_type")
+  @Column(PostgreSQLKeys.COLUMN_NAME_LOAN_TYPE)
   private String loanType;
-  @Column("interest_rate")
+  @Column(PostgreSQLKeys.COLUMN_NAME_INTEREST_RATE)
   private BigDecimal interestRate;
-  @Column("application_status")
+  @Column(PostgreSQLKeys.COLUMN_NAME_APPLICATION_STATUS)
   private String applicationStatus;
-  @Column("status_id")
+  @Column(PostgreSQLKeys.COLUMN_NAME_STATUS_ID)
   private Long statusId;
 
 }

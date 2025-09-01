@@ -1,5 +1,6 @@
 package co.com.pragma.model.application.validation;
 
+import co.com.pragma.model.application.constants.ApplicationModelKeys;
 import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import reactor.core.publisher.Mono;
@@ -19,8 +20,8 @@ public class AmountValidationSpecification implements Specification<BigDecimal> 
   @Override
   public Mono<Void> validate(BigDecimal candidate) {
     if (candidate == null || candidate.compareTo(BigDecimal.ZERO) <= 0) {
-      LOG.severe("Validation failed: The field '" + fieldName + "' cannot be null or 0.");
-      return Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, "The field '" + fieldName + "' cannot be null or 0."));
+      LOG.severe(ApplicationModelKeys.FIELD_NOT_NULL_OR_ZERO + fieldName);
+      return Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationModelKeys.FIELD_NOT_NULL_OR_ZERO + fieldName));
     }
     return Mono.empty();
   }

@@ -39,7 +39,7 @@ public class Handler {
   @PreAuthorize("hasRole('USER')")
   public Mono<ServerResponse> listenSaveApplication(ServerRequest serverRequest) {
     return Mono.justOrEmpty(serverRequest.headers().firstHeader(ApplicationWebKeys.HEADER_AUTHORIZATION))
-      .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_TOKEN, "Authorization header missing")))
+      .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_TOKEN, ApplicationWebKeys.HEADER_MISSING)))
       .flatMap(header -> {
         String token = header.replace(ApplicationWebKeys.BEARER, ApplicationWebKeys.STRING_BLANK);
         Claims claims = jwtProvider.getClaims(token);
@@ -63,11 +63,11 @@ public class Handler {
   @PreAuthorize("hasRole('ADVISOR')")
   public Mono<ServerResponse> listenGetApplications(ServerRequest serverRequest) {
     return Mono.just(serverRequest)
-      .flatMap(req -> Mono.justOrEmpty(req.queryParam("pageSize"))
-        .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, "pageSize is required")))
+      .flatMap(req -> Mono.justOrEmpty(req.queryParam(ApplicationWebKeys.PARAM_PAGE_SIZE))
+        .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.ERROR_PAGE_SIZE)))
         .map(Integer::parseInt)
-        .flatMap(pageSize -> Mono.justOrEmpty(req.queryParam("pageNumber"))
-          .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, "pageNumber is required")))
+        .flatMap(pageSize -> Mono.justOrEmpty(req.queryParam(ApplicationWebKeys.PARAM_PAGE_NUMBER))
+          .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.ERROR_PAGE_NUMBER)))
           .map(Integer::parseInt)
           .flatMap(pageNumber -> {
             Integer status = req.queryParam("status").map(Integer::parseInt).orElse(null);
