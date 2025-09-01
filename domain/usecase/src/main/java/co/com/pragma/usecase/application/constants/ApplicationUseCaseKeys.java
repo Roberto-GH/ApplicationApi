@@ -13,5 +13,8 @@ public class ApplicationUseCaseKeys {
   public static final String DOCUMENT_FIELD = "identityDocument";
   public static final String AMOUNT_FIELD = "amount";
   public static final String APPLICATION_STATUS = "Application Status ";
+  public static final String STRING_100 = "100";
+  public static final String STRING_12 = "12";
+  public static final Long APPROVED_ID = 2L;
 
 }

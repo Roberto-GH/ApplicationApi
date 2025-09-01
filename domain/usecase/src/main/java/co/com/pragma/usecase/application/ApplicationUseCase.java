@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public class ApplicationUseCase implements ApplicationControllerUseCase {
@@ -68,32 +69,33 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
 
   private ApplicationData calculateTotalMonthlyPayment(ApplicationData appData) {
     LOG.info(ApplicationUseCaseKeys.APPLICATION_STATUS + appData.getStatusId() + " - " + appData.getApplicationStatus());
-    if(appData.getStatusId() != 2L) {
+    if(!Objects.equals(appData.getStatusId(), ApplicationUseCaseKeys.APPROVED_ID)) {
       return appData;
     }
     BigDecimal principal = appData.getAmount();
     BigDecimal annualInterestRate = appData.getInterestRate();
     Integer termInMonths = appData.getTerm();
-    if (principal == null || annualInterestRate == null || termInMonths == null || termInMonths <= 0 || annualInterestRate.compareTo(BigDecimal.ZERO) <= 0) {
+    if (principal == null || annualInterestRate == null || termInMonths == null || termInMonths <= 0 || annualInterestRate.compareTo(BigDecimal.ZERO) < 0) {
         appData.setTotalMonthlyPayment(BigDecimal.ZERO);
         return appData;
     }
+    // Avoid division by zero if interest rate is 0
+    if (annualInterestRate.compareTo(BigDecimal.ZERO) == 0) {
+      BigDecimal calculatedPayment = principal.divide(BigDecimal.valueOf(termInMonths), 2, RoundingMode.HALF_UP);
+      appData.setTotalMonthlyPayment(calculatedPayment);
+      return appData;
+    }
     // Convert annual percentage rate to monthly decimal rate
-    BigDecimal monthlyRate = annualInterestRate.divide(new BigDecimal("100"), MathContext.DECIMAL128)
-                                               .divide(new BigDecimal("12"), MathContext.DECIMAL128);
+    BigDecimal monthlyRate = annualInterestRate.divide(new BigDecimal(ApplicationUseCaseKeys.STRING_100), MathContext.DECIMAL128)
+                                               .divide(new BigDecimal(ApplicationUseCaseKeys.STRING_12), MathContext.DECIMAL128);
     //Fórmula de Amortización (Fórmula de la Anualidad) => M = P * [r(1+r)^n] / [(1+r)^n – 1]
     BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate);//(1 + r)
     BigDecimal onePlusRToTheN = onePlusR.pow(termInMonths, MathContext.DECIMAL128);//(1 + r)^n
     BigDecimal denominator = onePlusRToTheN.subtract(BigDecimal.ONE);//[(1+r)^n – 1]
-    // Avoid division by zero if interest rate is 0, which makes denominator 0
-    if (denominator.compareTo(BigDecimal.ZERO) == 0) {
-        appData.setTotalMonthlyPayment(principal.divide(BigDecimal.valueOf(termInMonths), 2, RoundingMode.HALF_UP));
-        return appData;
-    }
     BigDecimal numerator = monthlyRate.multiply(onePlusRToTheN);//r(1+r)^n
-    BigDecimal monthlyPayment = principal.multiply(numerator).divide(denominator, 2, RoundingMode.HALF_UP);//P *(numerador / denominador)
+    //P *(numerador / denominador)
+    BigDecimal monthlyPayment = principal.multiply(numerator).divide(denominator, 2, RoundingMode.HALF_UP);
     appData.setTotalMonthlyPayment(monthlyPayment);
     return appData;
   }
-
 }

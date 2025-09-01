@@ -31,6 +31,7 @@ class RouterRestTest {
   @BeforeEach
   void setUp() {
     when(applicationPath.getApplication()).thenReturn("/api/v1/application");
+    when(applicationPath.getApplications()).thenReturn("/api/v1/application");
     when(handler.listenSaveApplication(any())).thenReturn(ServerResponse.ok().build());
     RouterFunction<ServerResponse> routerFunction = routerRest.routerFunction(handler);
     webTestClient = WebTestClient.bindToRouterFunction(routerFunction).build();

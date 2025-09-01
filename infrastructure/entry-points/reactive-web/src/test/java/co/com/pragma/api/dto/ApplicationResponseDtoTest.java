@@ -14,7 +14,7 @@ class ApplicationResponseDtoTest {
   void testApplicationResponseDto() {
     UUID applicationId = UUID.randomUUID();
     BigDecimal amount = new BigDecimal("1000.00");
-    String term = "12 months";
+    Integer term = 12;
     String email = "test@example.com";
     Long identityDocument = 123456789L;
     Long statusId = 1L;
