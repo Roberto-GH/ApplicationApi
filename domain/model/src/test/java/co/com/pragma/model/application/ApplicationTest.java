@@ -17,7 +17,7 @@ class ApplicationTest {
       .builder()
       .applicationId(UUID.fromString("a3a4e4a0-1b2c-4d5e-8f6a-7b8c9d0e1f2a"))
       .amount(BigDecimal.TEN)
-      .term("term")
+      .term(12)
       .email("email")
       .identityDocument(123456L)
       .build();
@@ -55,7 +55,7 @@ class ApplicationTest {
 
   @Test
   void getTerm() {
-    Assertions.assertEquals("term", application.getTerm());
+    Assertions.assertEquals(12, application.getTerm());
   }
 
   @Test

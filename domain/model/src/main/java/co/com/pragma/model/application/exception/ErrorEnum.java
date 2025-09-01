@@ -1,12 +1,15 @@
 package co.com.pragma.model.application.exception;
 
+import co.com.pragma.model.application.constants.ApplicationModelKeys;
+
 public enum ErrorEnum {
 
-  APPLICATION_NOT_FOUND("APP-001", "Application not found.", 404),
-  INVALID_APPLICATION_DATA("APP-002", "Invalid application data.", 400),
-  UNAUTHORIZED_ACCESS("AUTH-001", "Unauthorized access.", 401),
-  INVALID_TOKEN("AUTH-002", "The provided token is invalid or has expired.", 403),
-  INTERNAL_SERVER_ERROR("SYS-001", "Internal server error.", 500);
+  APPLICATION_NOT_FOUND(ApplicationModelKeys.CODE_ERROR_APP_001, ApplicationModelKeys.DEFAULT_MESSAGE_APP_OO1, ApplicationModelKeys.STATUS_400),
+  INVALID_APPLICATION_DATA(ApplicationModelKeys.CODE_ERROR_APP_002, ApplicationModelKeys.DEFAULT_MESSAGE_APP_002, ApplicationModelKeys.STATUS_400),
+  UNAUTHORIZED_ACCESS(ApplicationModelKeys.CODE_ERROR_AUTH_001, ApplicationModelKeys.DEFAULT_MESSAGE_AUTH_001, ApplicationModelKeys.STATUS_401),
+  INVALID_TOKEN(ApplicationModelKeys.CODE_ERROR_AUTH_002, ApplicationModelKeys.DEFAULT_MESSAGE_AUTH_002, ApplicationModelKeys.STATUS_403),
+  INTERNAL_SERVER_ERROR(ApplicationModelKeys.CODE_ERROR_SYS_001, ApplicationModelKeys.DEFAULT_MESSAGE_SYS_001, ApplicationModelKeys.STATUS_500),
+  INTERNAL_CONFLIC_SERVER(ApplicationModelKeys.CODE_ERROR_RC_001, ApplicationModelKeys.DEFAULT_MESSAGE_RC_001, ApplicationModelKeys.STATUS_409);
 
   private final String code;
   private final String defaultMessage;

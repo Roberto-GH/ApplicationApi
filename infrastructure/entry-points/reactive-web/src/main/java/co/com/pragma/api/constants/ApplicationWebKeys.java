@@ -44,10 +44,24 @@ public class ApplicationWebKeys {
   public static final String EMAIL_NOT_MATCH = "Email does not match requesting user ";
   public static final String OPEN_API_APPLICATION_PATH = "/api/v1/application";
   public static final String OPEN_API_BEAN_METHOD_SAVE_APPLICATION = "listenSaveApplication";
+  public static final String OPEN_API_BEAN_METHOD_GET_APPLICATIONS = "listenGetApplications";
   public static final String OPEN_API_OPERATION_ID = "saveApplication";
+  public static final String OPEN_API_OPERATION_GET_APPLICATIONS = "getApplications";
+  public static final String OPEN_API_SUMMARY_GET_APPLICATIONS = "Get applications with optional filters";
   public static final String OPEN_API_RESPONSE_CODE = "200";
   public static final String OPEN_API_DESCRIPTION_SUCCESS = "Successful operation";
   public static final String OPEN_API_MEDIA_TYPE = "application/json";
+  public static final String HEADER_MISSING = "header missing";
+  public static final String PARAM_PAGE_SIZE = "pageSize";
+  public static final String PARAM_PAGE_NUMBER = "pageNumber";
+  public static final String PARAM_STATUS = "status";
+  public static final String PARAM_LOAN_TYPE = "loanType";
+  public static final String PARAM_PAGE_SIZE_DESCRIPTION = "Page size";
+  public static final String PARAM_PAGE_NUMBER_DESCRIPTION = "Page number";
+  public static final String PARAM_STATUS_DESCRIPTION = "Filter by application status";
+  public static final String PARAM_LOAN_TYPE_DESCRIPTION = "Filter by loan type";
+  public static final String ERROR_PAGE_SIZE = "pageSize is required";
+  public static final String ERROR_PAGE_NUMBER = "pageNumber is required";
 
   public static final String[] ALLOWED_PATHS = new String[]{"/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/swagger-ui/**"};
 

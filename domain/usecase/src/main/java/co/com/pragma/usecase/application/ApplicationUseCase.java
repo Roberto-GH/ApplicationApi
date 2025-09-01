@@ -1,6 +1,8 @@
 package co.com.pragma.usecase.application;
 
 import co.com.pragma.model.application.Application;
+import co.com.pragma.model.application.ApplicationData;
+import co.com.pragma.model.application.ApplicationList;
 import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
@@ -11,13 +13,16 @@ import co.com.pragma.usecase.application.constants.ApplicationUseCaseKeys;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public class ApplicationUseCase implements ApplicationControllerUseCase {
 
   private static final Logger LOG = Logger.getLogger(ApplicationUseCase.class.getName());
 
-  private static final Specification<String> TERM_NOT_EMPTY = new NotEmptySpecification(ApplicationUseCaseKeys.TERM_FIELD);
+  private static final Specification<Integer> TERM_NOT_EMPTY = new NotNullIntegerSpecification(ApplicationUseCaseKeys.TERM_FIELD);
   private static final Specification<String> EMAIL_FORMAT = new EmailSpecification(ApplicationUseCaseKeys.EMAIL_FIELD);
   private static final Specification<Long> DOCUMENT_VALIDATE = new NotNullNumberSpecification(ApplicationUseCaseKeys.DOCUMENT_FIELD);
   private static final Specification<BigDecimal> AMOUNT_VALIDATE = new AmountValidationSpecification(ApplicationUseCaseKeys.AMOUNT_FIELD);
@@ -44,4 +49,53 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
       .flatMap(applicationRepository::saveApplication);
   }
 
+  @Override
+  public Mono<ApplicationList> getApplicationsByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber) {
+    return applicationRepository.countByStatusAndLoanType(status, loanType)
+      .flatMap(totalRecords -> {
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+        return applicationRepository.findByStatusAndLoanType(status, loanType, pageSize, pageNumber)
+          .map(this::calculateTotalMonthlyPayment)
+          .collectList()
+          .map(applications -> ApplicationList.builder()
+            .pageNumber(pageNumber)
+            .pageSize(pageSize)
+            .totalRecords(totalRecords.intValue())
+            .totalPages(totalPages)
+            .data(applications)
+            .build());
+      });
+  }
+
+  private ApplicationData calculateTotalMonthlyPayment(ApplicationData appData) {
+    LOG.info(ApplicationUseCaseKeys.APPLICATION_STATUS + appData.getStatusId() + " - " + appData.getApplicationStatus());
+    if(!Objects.equals(appData.getStatusId(), ApplicationUseCaseKeys.APPROVED_ID)) {
+      return appData;
+    }
+    BigDecimal principal = appData.getAmount();
+    BigDecimal annualInterestRate = appData.getInterestRate();
+    Integer termInMonths = appData.getTerm();
+    if (principal == null || annualInterestRate == null || termInMonths == null || termInMonths <= 0 || annualInterestRate.compareTo(BigDecimal.ZERO) < 0) {
+        appData.setTotalMonthlyPayment(BigDecimal.ZERO);
+        return appData;
+    }
+    // Avoid division by zero if interest rate is 0
+    if (annualInterestRate.compareTo(BigDecimal.ZERO) == 0) {
+      BigDecimal calculatedPayment = principal.divide(BigDecimal.valueOf(termInMonths), 2, RoundingMode.HALF_UP);
+      appData.setTotalMonthlyPayment(calculatedPayment);
+      return appData;
+    }
+    // Convert annual percentage rate to monthly decimal rate
+    BigDecimal monthlyRate = annualInterestRate.divide(new BigDecimal(ApplicationUseCaseKeys.STRING_100), MathContext.DECIMAL128)
+                                               .divide(new BigDecimal(ApplicationUseCaseKeys.STRING_12), MathContext.DECIMAL128);
+    //Fórmula de Amortización (Fórmula de la Anualidad) => M = P * [r(1+r)^n] / [(1+r)^n – 1]
+    BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate);//(1 + r)
+    BigDecimal onePlusRToTheN = onePlusR.pow(termInMonths, MathContext.DECIMAL128);//(1 + r)^n
+    BigDecimal denominator = onePlusRToTheN.subtract(BigDecimal.ONE);//[(1+r)^n – 1]
+    BigDecimal numerator = monthlyRate.multiply(onePlusRToTheN);//r(1+r)^n
+    //P *(numerador / denominador)
+    BigDecimal monthlyPayment = principal.multiply(numerator).divide(denominator, 2, RoundingMode.HALF_UP);
+    appData.setTotalMonthlyPayment(monthlyPayment);
+    return appData;
+  }
 }

@@ -3,7 +3,9 @@ package co.com.pragma.api.mapper;
 import co.com.pragma.api.constants.ApplicationWebKeys;
 import co.com.pragma.api.dto.ApplicationResponseDto;
 import co.com.pragma.api.dto.CreateApplicationDto;
+import co.com.pragma.api.dto.ApplicationListResponseDto;
 import co.com.pragma.model.application.Application;
+import co.com.pragma.model.application.ApplicationList;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
@@ -19,5 +21,7 @@ public interface ApplicationDtoMapper {
       return null;
     return toBuilder(dto);
   }
+
+  ApplicationListResponseDto toApplicationListDto(ApplicationList applicationList);
 
 }

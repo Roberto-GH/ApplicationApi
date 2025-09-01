@@ -23,7 +23,7 @@ public class ApplicationEntity {
   @Column(PostgreSQLKeys.COLUMN_NAME_APPLICATION_ID)
   private UUID applicationId;
   private BigDecimal amount;
-  private String term;
+  private Integer term;
   private String email;
   @Column(PostgreSQLKeys.COLUMN_NAME_IDENTITY)
   private Long identityDocument;

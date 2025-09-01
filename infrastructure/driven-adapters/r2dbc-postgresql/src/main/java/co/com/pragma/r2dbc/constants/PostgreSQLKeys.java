@@ -20,5 +20,9 @@ public class PostgreSQLKeys {
   public static final String COLUMN_NAME_MAXIMUN_AMOUNT = "maximum_amount";
   public static final String COLUMN_NAME_INTEREST_RATE = "interest_rate";
   public static final String COLUMN_NAME_AUTOMATIC_VALIDATION = "automatic_validation";
+  public static final String COLUMN_NAME_LOAN_TYPE = "loan_type";
+  public static final String COLUMN_NAME_APPLICATION_STATUS = "application_status";
+  public static final String INFO_POPULATING_DATA = "Populating ApplicationData with user data => ";
+  public static final String INC0MPLETE_DATA = "ApplicationData will be returned incomplete. Error querying user with email => ";
 
 }

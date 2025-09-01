@@ -12,7 +12,7 @@ class CreateApplicationDtoTest {
   @Test
   void testCreateApplicationDto() {
     BigDecimal amount = new BigDecimal("1500.00");
-    String term = "18 months";
+    Integer term = 18; // Changed from String to Integer
     String email = "create@example.com";
     Long identityDocument = 987654321L;
     Long loanTypeId = 3L;

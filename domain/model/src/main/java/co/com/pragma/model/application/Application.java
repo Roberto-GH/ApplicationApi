@@ -7,7 +7,7 @@ public class Application {
 
   private final UUID applicationId;
   private final BigDecimal amount;
-  private final String term;
+  private final Integer term;
   private final String email;
   private final Long identityDocument;
   private final Long statusId;
@@ -31,7 +31,7 @@ public class Application {
     return amount;
   }
 
-  public String getTerm() {
+  public Integer getTerm() {
     return term;
   }
 
@@ -59,7 +59,7 @@ public class Application {
 
     private UUID applicationId;
     private BigDecimal amount;
-    private String term;
+    private Integer term;
     private String email;
     private Long identityDocument;
     private Long statusId;
@@ -75,7 +75,7 @@ public class Application {
       return this;
     }
 
-    public Builder term(String term) {
+    public Builder term(Integer term) {
       this.term = term;
       return this;
     }

@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public record CreateApplicationDto (
   BigDecimal amount,
-  String term,
+  Integer term,
   String email,
   Long identityDocument,
   Long loanTypeId

@@ -12,7 +12,7 @@ class ApplicationEntityTest {
 
   private static final UUID applicationId = UUID.randomUUID();
   private static final BigDecimal amount = new BigDecimal("1000.00");
-  private static final String term = "12 months";
+  private static final Integer term = 12;
   private static final String email = "test@example.com";
   private static final Long identityDocument = 123456789L;
   private static final Long statusId = 1L;
@@ -39,7 +39,7 @@ class ApplicationEntityTest {
   void testSetters() {
     UUID newApplicationId = UUID.randomUUID();
     BigDecimal newAmount = new BigDecimal("2000.00");
-    String newTerm = "24 months";
+    Integer newTerm = 24;
     String newEmail = "newtest@example.com";
     Long newIdentityDocument = 987654321L;
     Long newStatusId = 3L;

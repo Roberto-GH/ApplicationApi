@@ -28,7 +28,7 @@ class ApplicationDtoMapperTest {
       .builder()
       .applicationId(applicationId)
       .amount(new BigDecimal("1000.00"))
-      .term("12 months")
+      .term(12)
       .email("test@example.com")
       .identityDocument(123456789L)
       .statusId(1L)
@@ -46,7 +46,7 @@ class ApplicationDtoMapperTest {
 
   @Test
   void toBuilder_shouldMapCreateApplicationDtoToApplicationBuilder() {
-    CreateApplicationDto createDto = new CreateApplicationDto(new BigDecimal("1500.00"), "24 months", "create@example.com", 987654321L, 3L);
+    CreateApplicationDto createDto = new CreateApplicationDto(new BigDecimal("1500.00"), 24, "create@example.com", 987654321L, 3L);
     Application.Builder builder = mapper.toBuilder(createDto);
     assertNotNull(builder);
     Application builtApplication = builder.build();
@@ -59,7 +59,7 @@ class ApplicationDtoMapperTest {
 
   @Test
   void toModel_shouldMapCreateApplicationDtoToApplicationBuilder() {
-    CreateApplicationDto createDto = new CreateApplicationDto(new BigDecimal("2000.00"), "36 months", "model@example.com", 1122334455L, 4L);
+    CreateApplicationDto createDto = new CreateApplicationDto(new BigDecimal("2000.00"), 36, "model@example.com", 1122334455L, 4L);
     Application.Builder builder = mapper.toModel(createDto);
     assertNotNull(builder);
     Application builtApplication = builder.build();

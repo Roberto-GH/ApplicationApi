@@ -1,14 +1,13 @@
 package co.com.pragma.model.application.validation;
 
+import co.com.pragma.model.application.constants.ApplicationModelKeys;
 import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import reactor.core.publisher.Mono;
 
-import java.util.regex.Pattern;
-
 public class EmailSpecification implements Specification<String> {
 
-  private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
+
   private final String fieldName;
 
   public EmailSpecification(String fieldName) {
@@ -18,10 +17,10 @@ public class EmailSpecification implements Specification<String> {
   @Override
   public Mono<Void> validate(String candidate) {
     if (candidate == null || candidate.trim().isEmpty()) {
-      return Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, "The email field '" + fieldName + "' cannot be empty."));
+      return Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationModelKeys.FIELD_NOT_EMPTY + fieldName));
     }
-    if (!EMAIL_PATTERN.matcher(candidate).matches()) {
-      return Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, "The format of the field '" + fieldName + "' is not a valid email."));
+    if (!ApplicationModelKeys.EMAIL_PATTERN.matcher(candidate).matches()) {
+      return Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationModelKeys.INVALID_FORMAT + fieldName));
     }
     return Mono.empty();
   }
