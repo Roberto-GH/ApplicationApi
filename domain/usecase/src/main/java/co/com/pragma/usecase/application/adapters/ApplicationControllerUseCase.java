@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 
 public interface ApplicationControllerUseCase {
 
-  Mono<Application> saveApplication(Application user);
+  Mono<Application> saveApplication(Application application);
 
   Mono<ApplicationList> getApplicationsByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber);
 

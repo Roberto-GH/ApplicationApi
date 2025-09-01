@@ -43,14 +43,14 @@ public class ApplicationReactiveRepositoryAdapter
   private Mono<ApplicationData> completeWithUserData(ApplicationData appData) {
     return userRestGateway.findUserByEmail(appData.getEmail())
       .map(user -> {
-          log.info(PostgreSQLKeys.INFO_POPULATING_DATA + user.getEmail());
-          appData.setName(user.getFirstName());
+        log.info(PostgreSQLKeys.INFO_POPULATING_DATA + "{}", user.getEmail());
+          appData.setName(user.getFirstName().concat(" ").concat(user.getLastName()));
           appData.setBaseSalary(user.getBaseSalary());
           return appData;
       })
       .defaultIfEmpty(appData)
       .onErrorResume(error -> {
-          log.error(PostgreSQLKeys.INC0MPLETE_DATA + appData.getEmail(), error.getMessage());
+        log.error(PostgreSQLKeys.INC0MPLETE_DATA + "{}", appData.getEmail(), error.getMessage());
           return Mono.just(appData);
       });
   }

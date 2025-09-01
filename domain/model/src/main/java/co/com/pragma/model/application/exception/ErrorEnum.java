@@ -8,6 +8,7 @@ public enum ErrorEnum {
   INVALID_APPLICATION_DATA(ApplicationModelKeys.CODE_ERROR_APP_002, ApplicationModelKeys.DEFAULT_MESSAGE_APP_002, ApplicationModelKeys.STATUS_400),
   UNAUTHORIZED_ACCESS(ApplicationModelKeys.CODE_ERROR_AUTH_001, ApplicationModelKeys.DEFAULT_MESSAGE_AUTH_001, ApplicationModelKeys.STATUS_401),
   INVALID_TOKEN(ApplicationModelKeys.CODE_ERROR_AUTH_002, ApplicationModelKeys.DEFAULT_MESSAGE_AUTH_002, ApplicationModelKeys.STATUS_403),
+  FORBIDDEN_ACCESS(ApplicationModelKeys.CODE_ERROR_AUTH_003, ApplicationModelKeys.DEFAULT_MESSAGE_AUTH_003, ApplicationModelKeys.STATUS_403),
   INTERNAL_SERVER_ERROR(ApplicationModelKeys.CODE_ERROR_SYS_001, ApplicationModelKeys.DEFAULT_MESSAGE_SYS_001, ApplicationModelKeys.STATUS_500),
   INTERNAL_CONFLIC_SERVER(ApplicationModelKeys.CODE_ERROR_RC_001, ApplicationModelKeys.DEFAULT_MESSAGE_RC_001, ApplicationModelKeys.STATUS_409);
 

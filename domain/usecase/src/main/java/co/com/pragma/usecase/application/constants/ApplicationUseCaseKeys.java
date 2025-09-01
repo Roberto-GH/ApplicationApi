@@ -7,6 +7,7 @@ public class ApplicationUseCaseKeys {
   }
 
   public static final String LOAN_ID_NOT_EXIST = "Loan type with id does not exist ";
+  public static final String STATUS_ID_NOT_EXIST = "Status with id does not exist ";
   public static final String APPLICATION_VALIDATED_SUCCESSFULLY = "Application validated successfully ";
   public static final String TERM_FIELD = "term";
   public static final String EMAIL_FIELD = "email";

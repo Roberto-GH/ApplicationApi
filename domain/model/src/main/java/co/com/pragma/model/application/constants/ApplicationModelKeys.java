@@ -19,12 +19,14 @@ public class ApplicationModelKeys {
   public static final String CODE_ERROR_APP_002 = "APP-002";
   public static final String CODE_ERROR_AUTH_001 = "AUTH-001";
   public static final String CODE_ERROR_AUTH_002 = "AUTH-002";
+  public static final String CODE_ERROR_AUTH_003 = "AUTH-003";
   public static final String CODE_ERROR_SYS_001 = "SYS-001";
   public static final String CODE_ERROR_RC_001 = "RC-001";
   public static final String DEFAULT_MESSAGE_APP_OO1 = "Application not found.";
   public static final String DEFAULT_MESSAGE_APP_002 = "Invalid application data.";
   public static final String DEFAULT_MESSAGE_AUTH_001 = "Unauthorized access.";
   public static final String DEFAULT_MESSAGE_AUTH_002 = "The provided token is invalid or has expired.";
+  public static final String DEFAULT_MESSAGE_AUTH_003 = "Access denied.";
   public static final String DEFAULT_MESSAGE_SYS_001 = "Internal server error.";
   public static final String DEFAULT_MESSAGE_RC_001 = "Internal server conflic.";
   public static final int STATUS_400 = 400;
