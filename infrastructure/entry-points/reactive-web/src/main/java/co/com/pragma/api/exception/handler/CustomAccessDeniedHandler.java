@@ -37,7 +37,7 @@ public class CustomAccessDeniedHandler implements ServerAccessDeniedHandler {
     Map<String, Object> errorDetails = new HashMap<>();
     errorDetails.put(ApplicationWebKeys.ERROR_ATTRIBUTE_MESSAGE, apiException.getDefaultMessage());
     errorDetails.put(ApplicationWebKeys.ERROR_ATTRIBUTE_ERROR_CODE, apiException.getCode());
-    errorDetails.put(ApplicationWebKeys.ERROR_ATTRIBUTE_ERROR, apiException.getStatus());
+    errorDetails.put(ApplicationWebKeys.ERROR_ATTRIBUTE_ERROR, HttpStatus.valueOf(apiException.getStatus()).getReasonPhrase());
     errorDetails.put(ApplicationWebKeys.ERROR_ATTRIBUTE_PATH, exchange.getRequest().getPath().value());
     byte[] responseBytes;
     try {
