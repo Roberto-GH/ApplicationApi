@@ -219,4 +219,52 @@ class ApplicationUseCaseTest {
     }).verifyComplete();
   }
 
+  @Test
+  void getApplicationsByStatusAndLoanType_onlyStatusProvided_success() {
+    Integer status = 2;
+    Integer pageSize = 10;
+    Integer pageNumber = 0;
+    Long totalRecords = 0L;
+
+    when(statusRepository.findById(any(Long.class))).thenReturn(Mono.just(Status.builder().statusId(2L).name("Aprobada").build()));
+    when(applicationRepository.countByStatusAndLoanType(anyInt(), any())).thenReturn(Mono.just(totalRecords));
+    when(applicationRepository.findByStatusAndLoanType(anyInt(), any(), anyInt(), anyInt())).thenReturn(Flux.empty());
+
+    Mono<ApplicationList> result = applicationUseCase.getApplicationsByStatusAndLoanType(status, null, pageSize, pageNumber);
+
+    StepVerifier.create(result).assertNext(applicationList -> {
+      assertNotNull(applicationList);
+      assertEquals(pageNumber, applicationList.pageNumber());
+      assertEquals(pageSize, applicationList.pageSize());
+      assertEquals(totalRecords.intValue(), applicationList.totalRecords());
+      assertEquals(0, applicationList.totalPages());
+      assertNotNull(applicationList.data());
+      assertEquals(0, applicationList.data().size());
+    }).verifyComplete();
+  }
+
+  @Test
+  void getApplicationsByStatusAndLoanType_onlyLoanTypeProvided_success() {
+    Integer loanType = 1;
+    Integer pageSize = 10;
+    Integer pageNumber = 0;
+    Long totalRecords = 0L;
+
+    when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
+    when(applicationRepository.countByStatusAndLoanType(any(), anyInt())).thenReturn(Mono.just(totalRecords));
+    when(applicationRepository.findByStatusAndLoanType(any(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.empty());
+
+    Mono<ApplicationList> result = applicationUseCase.getApplicationsByStatusAndLoanType(null, loanType, pageSize, pageNumber);
+
+    StepVerifier.create(result).assertNext(applicationList -> {
+      assertNotNull(applicationList);
+      assertEquals(pageNumber, applicationList.pageNumber());
+      assertEquals(pageSize, applicationList.pageSize());
+      assertEquals(totalRecords.intValue(), applicationList.totalRecords());
+      assertEquals(0, applicationList.totalPages());
+      assertNotNull(applicationList.data());
+      assertEquals(0, applicationList.data().size());
+    }).verifyComplete();
+  }
+
 }
