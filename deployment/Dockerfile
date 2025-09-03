@@ -16,6 +16,6 @@ RUN chown appuser:appgroup ApplicationApi.jar
 ENV JAVA_OPTS=" -XX:+UseContainerSupport -XX:MaxRAMPercentage=70 -Djava.security.egd=file:/dev/./urandom"
 EXPOSE 8090
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
+  CMD curl -f http://localhost:8090/actuator/health || exit 1
 USER appuser
 ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -jar ApplicationApi.jar" ]
