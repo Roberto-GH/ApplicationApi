@@ -23,7 +23,7 @@ management:
     circuitbreakers:
       enabled: true
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080"
+  allowed-origins: "${CORS}"
 routes:
   application:
     paths:
@@ -31,20 +31,20 @@ routes:
       applications: "/api/v1/applications"
 adapters:
   r2dbc:
-    host: "localhost"
-    port: 5433
-    database: "applications"
+    host: "${DB_HOST}"
+    port: ${DB_PORT}
+    database: "${DB_NAME}"
     schema: "public"
-    username: "postgres"
-    password: "postgres"
+    username: "${DB_USER}"
+    password: "${DB_PASSWORD}"
 jwt:
-  secret: "EstaEsUnaClaveSecretaMuyLargaParaQueSeaSeguraYCumplaConLosRequisitosDelAlgoritmo"
+  secret: "${JWT_SECRET}"
 adapter:
   restconsumer:
     timeout: 5000
-    url: "http://localhost:8080"
-    email: roberto.admin@gmail.com
-    password: Pass_1234
+    url: "${AUTH_API_URL}"
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
 resilience4j:
   circuitbreaker:
     instances:
