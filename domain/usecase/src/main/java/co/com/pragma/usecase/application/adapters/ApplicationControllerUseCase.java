@@ -10,4 +10,8 @@ public interface ApplicationControllerUseCase {
 
   Mono<ApplicationList> getApplicationsByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber);
 
+  Mono<Application> getApplicationById(String id);
+
+  Mono<Application> patchApplicationStatus(Application application);
+
 }

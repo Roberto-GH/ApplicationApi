@@ -82,6 +82,15 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
       }));
   }
 
+  @Override
+  public Mono<Application> getApplicationById(String id) {
+    return applicationRepository.findById(id);
+  }
+
+  @Override
+  public Mono<Application> patchApplicationStatus(Application application) {
+    return applicationRepository.saveApplication(application);
+  }
 
   private ApplicationData calculateTotalMonthlyPayment(ApplicationData appData) {
     LOG.info(ApplicationUseCaseKeys.APPLICATION_STATUS + appData.getStatusId() + " - " + appData.getApplicationStatus());

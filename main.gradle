@@ -28,19 +28,20 @@ subprojects {
   }
 
   dependencies {
+    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     implementation 'io.projectreactor:reactor-core'
     implementation 'io.projectreactor.addons:reactor-extra'
+    implementation "com.google.code.gson:gson:$gsonVersion"
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     testImplementation 'io.projectreactor.tools:blockhound-junit-platform:1.0.13.RELEASE'
-
     testImplementation 'io.projectreactor:reactor-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    compileOnly "org.projectlombok:lombok:${lombokVersion}"
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
   }
 
   tasks.withType(Test).configureEach {

@@ -6,8 +6,10 @@ import co.com.pragma.api.exception.ApplicationApiException;
 import co.com.pragma.api.jwt.JwtProvider;
 import co.com.pragma.api.mapper.ApplicationDtoMapper;
 import co.com.pragma.model.application.Application;
+import co.com.pragma.model.application.PathApplicationDto;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
+import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +21,11 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
-
 @Component
 public class Handler {
 
   private static final Logger LOG = LoggerFactory.getLogger(Handler.class);
+  private static final Gson gson = new Gson();
   private final ApplicationControllerUseCase applicationControllerUseCase;
   private final ApplicationDtoMapper applicationDtoMapper;
   private final TransactionalOperator transactionalOperator;
@@ -80,6 +81,29 @@ public class Handler {
       )
       .flatMap(paginationResponse -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
         .bodyValue(applicationDtoMapper.toApplicationListDto(paginationResponse)));
+  }
+
+  @PreAuthorize("hasRole('ADVISOR')")
+  public Mono<ServerResponse> listenPatchApplication(ServerRequest serverRequest) {
+    return serverRequest
+      .bodyToMono(PathApplicationDto.class)
+      .doOnNext(dto -> LOG.info("ApplicationDto patch recibido => {}", gson.toJson(dto)))
+      .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.ERROR_DATA_REQUIRED)))
+      .flatMap(dto -> {
+        if (dto.getApplicationId() == null || dto.getApplicationId().isBlank() || dto.getStatusId() == null){
+          return Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.INVALIDA_PATCH_APPLICATION_REQUEST));
+        }
+        return Mono.just(dto);
+      })
+      .flatMap(dto -> applicationControllerUseCase.getApplicationById(dto.getApplicationId())
+      .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.EMAIL_NOT_MATCH)))
+      .map(app -> {
+        app.setStatusId(dto.getStatusId());
+        return app;
+      }).doOnNext(a -> LOG.info("Application actualizado => {}", gson.toJson(a)))
+      .flatMap(application -> applicationControllerUseCase.patchApplicationStatus(application).as(transactionalOperator::transactional))
+      .map(applicationDtoMapper::toResponseDto)
+      .flatMap(reponseUser -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(reponseUser)));
   }
 
 }

@@ -5,13 +5,16 @@ import java.util.UUID;
 
 public class Application {
 
-  private final UUID applicationId;
-  private final BigDecimal amount;
-  private final Integer term;
-  private final String email;
-  private final Long identityDocument;
-  private final Long statusId;
-  private final Long loanTypeId;
+  private UUID applicationId;
+  private BigDecimal amount;
+  private Integer term;
+  private String email;
+  private Long identityDocument;
+  private Long statusId;
+  private Long loanTypeId;
+
+  public Application() {
+  }
 
   private Application(Builder builder) {
     this.applicationId = builder.applicationId;
@@ -27,28 +30,56 @@ public class Application {
     return applicationId;
   }
 
+  public void setApplicationId(UUID applicationId) {
+    this.applicationId = applicationId;
+  }
+
   public BigDecimal getAmount() {
     return amount;
+  }
+
+  public void setAmount(BigDecimal amount) {
+    this.amount = amount;
   }
 
   public Integer getTerm() {
     return term;
   }
 
+  public void setTerm(Integer term) {
+    this.term = term;
+  }
+
   public String getEmail() {
     return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
   }
 
   public Long getIdentityDocument() {
     return identityDocument;
   }
 
+  public void setIdentityDocument(Long identityDocument) {
+    this.identityDocument = identityDocument;
+  }
+
   public Long getStatusId() {
     return statusId;
   }
 
+  public void setStatusId(Long statusId) {
+    this.statusId = statusId;
+  }
+
   public Long getLoanTypeId() {
     return loanTypeId;
+  }
+
+  public void setLoanTypeId(Long loanTypeId) {
+    this.loanTypeId = loanTypeId;
   }
 
   public static Builder builder() {

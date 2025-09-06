@@ -1,3 +1,11 @@
-dependencies {
-    implementation project(':model')
+configurations.configureEach {
+  it.dependencies.removeIf { dep ->
+    dep.group == 'org.projectlombok' && dep.name == 'lombok' ||
+      dep.group == 'com.google.code.gson' && dep.name == 'gson'
+  }
 }
+
+dependencies {
+  implementation project(':model')
+}
+

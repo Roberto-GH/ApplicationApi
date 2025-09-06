@@ -1,8 +1,5 @@
 package co.com.pragma.model.application.exception;
 
-import lombok.Getter;
-
-@Getter
 public class ApplicationException extends CustomException {
 
   public ApplicationException(ErrorEnum errorEnum) {
