@@ -3,10 +3,12 @@ package co.com.pragma.usecase.application;
 import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.ApplicationData;
 import co.com.pragma.model.application.ApplicationList;
+import co.com.pragma.model.application.SqsMessageBody;
 import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.LoanTypeRepository;
+import co.com.pragma.model.application.gateways.SQSSenderGateway;
 import co.com.pragma.model.application.gateways.StatusRepository;
 import co.com.pragma.model.application.validation.*;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
@@ -31,11 +33,14 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
   private final ApplicationRepository applicationRepository;
   private final LoanTypeRepository loanTypeRepository;
   private final StatusRepository statusRepository;
+  private final SQSSenderGateway senderGateway;
 
-  public ApplicationUseCase(ApplicationRepository applicationRepository, LoanTypeRepository loanTypeRepository, StatusRepository statusRepository) {
+  public ApplicationUseCase(ApplicationRepository applicationRepository, LoanTypeRepository loanTypeRepository, StatusRepository statusRepository,
+                            SQSSenderGateway senderGateway) {
     this.applicationRepository = applicationRepository;
     this.loanTypeRepository = loanTypeRepository;
     this.statusRepository = statusRepository;
+    this.senderGateway = senderGateway;
   }
 
   @Override
@@ -89,7 +94,27 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
 
   @Override
   public Mono<Application> patchApplicationStatus(Application application) {
-    return applicationRepository.saveApplication(application);
+    return applicationRepository.saveApplication(application)
+      .onErrorResume(e -> Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.ERROR_UPDATE)))
+      .flatMap(appl -> {
+        if (application.getStatusId() == 2 || application.getStatusId() == 3) {
+          return statusRepository.findById(application.getStatusId())
+            .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.STATUS_ID_NOT_EXIST + application.getStatusId())))
+            .flatMap(status -> {
+              SqsMessageBody body = SqsMessageBody
+                .builder()
+                .subject(ApplicationUseCaseKeys.SUBJECT_UPDATE_SQS_SES)
+                .email(application.getEmail())
+                .message(ApplicationUseCaseKeys.MESSAGE_UPDATE_SQS_SES + status.getName())
+                .build();
+              return senderGateway.send(body)
+                .onErrorResume(e -> Mono.error(new DomainValidationException(ErrorEnum.INTERNAL_CONFLIC_SERVER)))
+                .map(send -> appl);
+            });
+        } else {
+          return Mono.just(appl);
+        }
+      });
   }
 
   private ApplicationData calculateTotalMonthlyPayment(ApplicationData appData) {

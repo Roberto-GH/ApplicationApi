@@ -8,6 +8,7 @@ public class ApplicationUseCaseKeys {
 
   public static final String LOAN_ID_NOT_EXIST = "Loan type with id does not exist ";
   public static final String STATUS_ID_NOT_EXIST = "Status with id does not exist ";
+  public static final String ERROR_UPDATE = "Error update application ";
   public static final String APPLICATION_VALIDATED_SUCCESSFULLY = "Application validated successfully ";
   public static final String TERM_FIELD = "term";
   public static final String EMAIL_FIELD = "email";
@@ -17,5 +18,7 @@ public class ApplicationUseCaseKeys {
   public static final String STRING_100 = "100";
   public static final String STRING_12 = "12";
   public static final Long APPROVED_ID = 2L;
+  public static final String SUBJECT_UPDATE_SQS_SES = "Solicitud Crediya";
+  public static final String MESSAGE_UPDATE_SQS_SES = "El estado de su solicitud es ";
 
 }

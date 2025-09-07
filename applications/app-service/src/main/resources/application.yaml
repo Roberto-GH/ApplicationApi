@@ -32,7 +32,7 @@ routes:
 adapters:
   r2dbc:
     host: "${DB_HOST}"
-    port: ${DB_PORT}
+    port: "${DB_PORT}"
     database: "${DB_NAME}"
     schema: "public"
     username: "${DB_USER}"
@@ -43,8 +43,11 @@ adapter:
   restconsumer:
     timeout: 5000
     url: "${AUTH_API_URL}"
-    email: ${ADMIN_EMAIL}
-    password: ${ADMIN_PASSWORD}
+    email: "${ADMIN_EMAIL}"
+    password: "${ADMIN_PASSWORD}"
+  sqs:
+    region: "us-east-1"
+    queueUrl: "${QUEUE_URL}"
 resilience4j:
   circuitbreaker:
     instances:

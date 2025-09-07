@@ -3,8 +3,10 @@ package co.com.pragma.api.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record ApplicationDataDto(
+  UUID id,
   BigDecimal amount,
   Integer term,
   String email,
