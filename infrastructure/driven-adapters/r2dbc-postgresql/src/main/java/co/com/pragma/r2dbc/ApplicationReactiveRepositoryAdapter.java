@@ -60,4 +60,10 @@ public class ApplicationReactiveRepositoryAdapter
     return repository.countByStatusAndLoanType(status, loanType);
   }
 
+  @Override
+  public Mono<Application> findById(String id) {
+    return repository.findById(UUID.fromString(id))
+      .map(m -> mapper.map(m, Application.class));
+  }
+
 }

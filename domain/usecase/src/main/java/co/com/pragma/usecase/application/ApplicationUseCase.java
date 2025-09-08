@@ -3,10 +3,12 @@ package co.com.pragma.usecase.application;
 import co.com.pragma.model.application.Application;
 import co.com.pragma.model.application.ApplicationData;
 import co.com.pragma.model.application.ApplicationList;
+import co.com.pragma.model.application.MessageBody;
 import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.LoanTypeRepository;
+import co.com.pragma.model.application.gateways.SenderGateway;
 import co.com.pragma.model.application.gateways.StatusRepository;
 import co.com.pragma.model.application.validation.*;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
@@ -31,11 +33,14 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
   private final ApplicationRepository applicationRepository;
   private final LoanTypeRepository loanTypeRepository;
   private final StatusRepository statusRepository;
+  private final SenderGateway senderGateway;
 
-  public ApplicationUseCase(ApplicationRepository applicationRepository, LoanTypeRepository loanTypeRepository, StatusRepository statusRepository) {
+  public ApplicationUseCase(ApplicationRepository applicationRepository, LoanTypeRepository loanTypeRepository, StatusRepository statusRepository,
+                            SenderGateway senderGateway) {
     this.applicationRepository = applicationRepository;
     this.loanTypeRepository = loanTypeRepository;
     this.statusRepository = statusRepository;
+    this.senderGateway = senderGateway;
   }
 
   @Override
@@ -82,6 +87,36 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
       }));
   }
 
+  @Override
+  public Mono<Application> getApplicationById(String id) {
+    return applicationRepository.findById(id);
+  }
+
+  @Override
+  public Mono<Application> patchApplicationStatus(Application application) {
+    return applicationRepository.saveApplication(application)
+      .onErrorResume(e -> Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.ERROR_UPDATE)))
+      .flatMap(appl -> {
+        if (Objects.equals(application.getStatusId(), ApplicationUseCaseKeys.APPROVED_STATUS_ID) ||
+            Objects.equals(application.getStatusId(), ApplicationUseCaseKeys.REJECTED_STATUS_ID)) {
+          return statusRepository.findById(application.getStatusId())
+            .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.STATUS_ID_NOT_EXIST + application.getStatusId())))
+            .flatMap(status -> {
+              MessageBody body = MessageBody
+                .builder()
+                .subject(ApplicationUseCaseKeys.SUBJECT_UPDATE)
+                .email(application.getEmail())
+                .message(ApplicationUseCaseKeys.MESSAGE_UPDATE + status.getName())
+                .build();
+              return senderGateway.send(body)
+                .onErrorResume(e -> Mono.error(new DomainValidationException(ErrorEnum.INTERNAL_CONFLIC_SERVER)))
+                .map(send -> appl);
+            });
+        } else {
+          return Mono.just(appl);
+        }
+      });
+  }
 
   private ApplicationData calculateTotalMonthlyPayment(ApplicationData appData) {
     LOG.info(ApplicationUseCaseKeys.APPLICATION_STATUS + appData.getStatusId() + " - " + appData.getApplicationStatus());

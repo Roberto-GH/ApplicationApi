@@ -2,6 +2,7 @@ package co.com.pragma.config;
 
 import co.com.pragma.model.application.gateways.ApplicationRepository;
 import co.com.pragma.model.application.gateways.LoanTypeRepository;
+import co.com.pragma.model.application.gateways.SenderGateway;
 import co.com.pragma.model.application.gateways.StatusRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,8 @@ class UseCasesConfigTest {
   private LoanTypeRepository loanTypeRepository;
   @MockitoBean
   private StatusRepository statusRepository;
+  @MockitoBean
+  private SenderGateway senderGateway;
 
   @Test
   void testUseCaseBeansExist() {
