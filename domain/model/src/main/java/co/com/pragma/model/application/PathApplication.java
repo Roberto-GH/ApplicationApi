@@ -1,6 +1,6 @@
 package co.com.pragma.model.application;
 
-public class PathApplicationDto {
+public class PathApplication {
 
   private String applicationId;
   private Long statusId;
@@ -40,8 +40,8 @@ public class PathApplicationDto {
       return this;
     }
 
-    public PathApplicationDto build() {
-      PathApplicationDto dto = new PathApplicationDto();
+    public PathApplication build() {
+      PathApplication dto = new PathApplication();
       dto.setApplicationId(applicationId);
       dto.setStatusId(statusId);
       return dto;

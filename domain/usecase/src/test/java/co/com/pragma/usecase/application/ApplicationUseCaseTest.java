@@ -40,6 +40,8 @@ class ApplicationUseCaseTest {
   private StatusRepository statusRepository;
   @Mock
   private LoanTypeRepository loanTypeRepository;
+  @Mock
+  private co.com.pragma.model.application.gateways.SenderGateway senderGateway;
   @InjectMocks
   private ApplicationUseCase applicationUseCase;
 
@@ -265,6 +267,131 @@ class ApplicationUseCaseTest {
       assertNotNull(applicationList.data());
       assertEquals(0, applicationList.data().size());
     }).verifyComplete();
+  }
+
+  @Test
+  void getApplicationById_success() {
+    String applicationId = validApplication.getApplicationId().toString();
+    when(applicationRepository.findById(applicationId)).thenReturn(Mono.just(validApplication));
+
+    StepVerifier.create(applicationUseCase.getApplicationById(applicationId))
+      .expectNext(validApplication)
+      .verifyComplete();
+  }
+
+  @Test
+  void patchApplicationStatus_success_approvedStatus() {
+    Application updatedApplication = Application.builder()
+      .applicationId(validApplication.getApplicationId())
+      .amount(validApplication.getAmount())
+      .term(validApplication.getTerm())
+      .email(validApplication.getEmail())
+      .identityDocument(validApplication.getIdentityDocument())
+      .statusId(2L) // APPROVED_STATUS_ID
+      .loanTypeId(validApplication.getLoanTypeId())
+      .build();
+    Status approvedStatus = Status.builder().statusId(2L).name("Aprobada").build();
+
+    when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(updatedApplication));
+    when(statusRepository.findById(2L)).thenReturn(Mono.just(approvedStatus));
+    when(senderGateway.send(any(MessageBody.class))).thenReturn(Mono.just("Message sent successfully"));
+
+    StepVerifier.create(applicationUseCase.patchApplicationStatus(updatedApplication))
+      .expectNext(updatedApplication)
+      .verifyComplete();
+  }
+
+  @Test
+  void patchApplicationStatus_success_rejectedStatus() {
+    Application updatedApplication = Application.builder()
+      .applicationId(validApplication.getApplicationId())
+      .amount(validApplication.getAmount())
+      .term(validApplication.getTerm())
+      .email(validApplication.getEmail())
+      .identityDocument(validApplication.getIdentityDocument())
+      .statusId(3L) // REJECTED_STATUS_ID
+      .loanTypeId(validApplication.getLoanTypeId())
+      .build();
+    Status rejectedStatus = Status.builder().statusId(3L).name("Rechazada").build();
+
+    when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(updatedApplication));
+    when(statusRepository.findById(3L)).thenReturn(Mono.just(rejectedStatus));
+    when(senderGateway.send(any(MessageBody.class))).thenReturn(Mono.just("Message sent successfully"));
+
+    StepVerifier.create(applicationUseCase.patchApplicationStatus(updatedApplication))
+      .expectNext(updatedApplication)
+      .verifyComplete();
+  }
+
+  @Test
+  void patchApplicationStatus_noStatusChange() {
+    Application updatedApplication = Application.builder()
+      .applicationId(validApplication.getApplicationId())
+      .amount(validApplication.getAmount())
+      .term(validApplication.getTerm())
+      .email(validApplication.getEmail())
+      .identityDocument(validApplication.getIdentityDocument())
+      .statusId(1L) // Some other status, not approved or rejected
+      .loanTypeId(validApplication.getLoanTypeId())
+      .build();
+    when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(updatedApplication));
+
+    StepVerifier.create(applicationUseCase.patchApplicationStatus(updatedApplication))
+      .expectNext(updatedApplication)
+      .verifyComplete();
+  }
+
+  @Test
+  void patchApplicationStatus_error_update() {
+    when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.error(new RuntimeException("DB Error")));
+
+    StepVerifier.create(applicationUseCase.patchApplicationStatus(validApplication))
+      .expectErrorMatches(throwable -> throwable instanceof DomainValidationException &&
+                                       throwable.getMessage().equals("Error update application "))
+      .verify();
+  }
+
+  @Test
+  void patchApplicationStatus_status_not_exist() {
+    Application updatedApplication = Application.builder()
+      .applicationId(validApplication.getApplicationId())
+      .amount(validApplication.getAmount())
+      .term(validApplication.getTerm())
+      .email(validApplication.getEmail())
+      .identityDocument(validApplication.getIdentityDocument())
+      .statusId(2L) // APPROVED_STATUS_ID
+      .loanTypeId(validApplication.getLoanTypeId())
+      .build();
+    when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(updatedApplication));
+    when(statusRepository.findById(2L)).thenReturn(Mono.empty());
+
+    StepVerifier.create(applicationUseCase.patchApplicationStatus(updatedApplication))
+      .expectErrorMatches(throwable -> throwable instanceof DomainValidationException &&
+                                       throwable.getMessage().equals("Status with id does not exist " + updatedApplication.getStatusId()))
+      .verify();
+  }
+
+  @Test
+  void patchApplicationStatus_internal_conflict_server() {
+    Application updatedApplication = Application.builder()
+      .applicationId(validApplication.getApplicationId())
+      .amount(validApplication.getAmount())
+      .term(validApplication.getTerm())
+      .email(validApplication.getEmail())
+      .identityDocument(validApplication.getIdentityDocument())
+      .statusId(2L) // APPROVED_STATUS_ID
+      .loanTypeId(validApplication.getLoanTypeId())
+      .build();
+    Status approvedStatus = Status.builder().statusId(2L).name("Aprobada").build();
+
+    when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(updatedApplication));
+    when(statusRepository.findById(2L)).thenReturn(Mono.just(approvedStatus));
+    when(senderGateway.send(any(MessageBody.class))).thenReturn(Mono.error(new RuntimeException("Sender Error")));
+
+    StepVerifier.create(applicationUseCase.patchApplicationStatus(updatedApplication))
+      .expectErrorMatches(throwable -> throwable instanceof DomainValidationException &&
+                                       throwable.getMessage().equals("Internal server conflic."))
+      .verify();
   }
 
 }

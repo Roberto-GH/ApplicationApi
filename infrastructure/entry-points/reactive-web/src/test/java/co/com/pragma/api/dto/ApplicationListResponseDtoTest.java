@@ -33,8 +33,8 @@ class ApplicationListResponseDtoTest {
     @Test
     void equalsAndHashCodeShouldWorkCorrectly() {
         // Create ApplicationDataDto instances using their canonical constructor
-        ApplicationDataDto dataDto1 = new ApplicationDataDto(null, null, null, null, null, null, null, null, null);
-        ApplicationDataDto dataDto2 = new ApplicationDataDto(null, null, null, null, null, null, null, null, null);
+        ApplicationDataDto dataDto1 = new ApplicationDataDto(null, null, null, null, null, null, null, null, null, null);
+        ApplicationDataDto dataDto2 = new ApplicationDataDto(null, null, null, null, null, null, null, null, null, null);
 
         List<ApplicationDataDto> data1 = Collections.singletonList(dataDto1);
         List<ApplicationDataDto> data2 = Collections.singletonList(dataDto2);

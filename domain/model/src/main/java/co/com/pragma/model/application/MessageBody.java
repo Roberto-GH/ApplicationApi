@@ -1,12 +1,12 @@
 package co.com.pragma.model.application;
 
-public class SqsMessageBody {
+public class MessageBody {
 
   private final String email;
   private final String subject;
   private final String message;
 
-  private SqsMessageBody(Builder builder) {
+  private MessageBody(Builder builder) {
     this.email = builder.email;
     this.subject = builder.subject;
     this.message = builder.message;
@@ -49,8 +49,8 @@ public class SqsMessageBody {
       return this;
     }
 
-    public SqsMessageBody build() {
-      return new SqsMessageBody(this);
+    public MessageBody build() {
+      return new MessageBody(this);
     }
 
   }

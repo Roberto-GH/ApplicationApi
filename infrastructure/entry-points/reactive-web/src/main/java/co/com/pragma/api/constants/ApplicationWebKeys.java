@@ -42,6 +42,7 @@ public class ApplicationWebKeys {
   public static final String ILLEGAL_ARGS = "illegal args";
   public static final String ERROR_DATA_REQUIRED = "Application data is required ";
   public static final String EMAIL_NOT_MATCH = "Email does not match requesting user ";
+  public static final String APPLICATION_NOT_EXIST = "Applications not exist ";
   public static final String OPEN_API_APPLICATION_PATH = "/api/v1/application";
   public static final String OPEN_API_BEAN_METHOD_SAVE_APPLICATION = "listenSaveApplication";
   public static final String OPEN_API_BEAN_METHOD_GET_APPLICATIONS = "listenGetApplications";
@@ -62,8 +63,6 @@ public class ApplicationWebKeys {
   public static final String PARAM_LOAN_TYPE_DESCRIPTION = "Filter by loan type";
   public static final String ERROR_PAGE_SIZE = "pageSize is required";
   public static final String ERROR_PAGE_NUMBER = "pageNumber is required";
-  public static final String ERROR_STATUS_INVALID = "status is invalid";
-  public static final String ERROR_LOAN_TYPE_INVALID = "loanType is invalid";
   public static final String INVALIDA_PATCH_APPLICATION_REQUEST = "Fields 'applicationId' and 'statusId' are required and cannot be empty.";
   public static final String WRITTING_JSON_ERROR = "{\"error\":\"Error writing JSON output\"}";
 

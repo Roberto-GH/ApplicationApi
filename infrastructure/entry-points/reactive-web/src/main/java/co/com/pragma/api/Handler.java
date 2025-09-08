@@ -6,7 +6,7 @@ import co.com.pragma.api.exception.ApplicationApiException;
 import co.com.pragma.api.jwt.JwtProvider;
 import co.com.pragma.api.mapper.ApplicationDtoMapper;
 import co.com.pragma.model.application.Application;
-import co.com.pragma.model.application.PathApplicationDto;
+import co.com.pragma.model.application.PathApplication;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
 import com.google.gson.Gson;
@@ -86,9 +86,9 @@ public class Handler {
   @PreAuthorize("hasRole('ADVISOR')")
   public Mono<ServerResponse> listenPatchApplication(ServerRequest serverRequest) {
     return serverRequest
-      .bodyToMono(PathApplicationDto.class)
-      .doOnNext(dto -> LOG.info("ApplicationDto patch recibido => {}", gson.toJson(dto)))
+      .bodyToMono(PathApplication.class)
       .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.ERROR_DATA_REQUIRED)))
+      .doOnNext(dto -> LOG.info("ApplicationDto patch recibido => {}", gson.toJson(dto)))
       .flatMap(dto -> {
         if (dto.getApplicationId() == null || dto.getApplicationId().isBlank() || dto.getStatusId() == null){
           return Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.INVALIDA_PATCH_APPLICATION_REQUEST));
@@ -96,7 +96,7 @@ public class Handler {
         return Mono.just(dto);
       })
       .flatMap(dto -> applicationControllerUseCase.getApplicationById(dto.getApplicationId())
-      .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.EMAIL_NOT_MATCH)))
+      .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.APPLICATION_NOT_EXIST)))
       .map(app -> {
         app.setStatusId(dto.getStatusId());
         return app;

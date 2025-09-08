@@ -18,7 +18,9 @@ public class ApplicationUseCaseKeys {
   public static final String STRING_100 = "100";
   public static final String STRING_12 = "12";
   public static final Long APPROVED_ID = 2L;
-  public static final String SUBJECT_UPDATE_SQS_SES = "Solicitud Crediya";
-  public static final String MESSAGE_UPDATE_SQS_SES = "El estado de su solicitud es ";
+  public static final String SUBJECT_UPDATE = "Solicitud Crediya";
+  public static final String MESSAGE_UPDATE = "El estado de su solicitud es ";
+  public static final Long APPROVED_STATUS_ID = 2L;
+  public static final Long REJECTED_STATUS_ID = 3L;
 
 }

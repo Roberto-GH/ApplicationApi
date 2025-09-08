@@ -1,7 +1,7 @@
 package co.com.pragma.sqs.sender;
 
-import co.com.pragma.model.application.SqsMessageBody;
-import co.com.pragma.model.application.gateways.SQSSenderGateway;
+import co.com.pragma.model.application.MessageBody;
+import co.com.pragma.model.application.gateways.SenderGateway;
 import co.com.pragma.sqs.sender.config.SQSSenderProperties;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +15,12 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class SQSSender implements SQSSenderGateway {
+public class Sender implements SenderGateway {
 
   private final SQSSenderProperties properties;
   private final SqsAsyncClient client;
 
-  public Mono<String> send(SqsMessageBody message) {
+  public Mono<String> send(MessageBody message) {
     return Mono
       .fromCallable(() -> buildRequest(new Gson().toJson(message)))
       .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
