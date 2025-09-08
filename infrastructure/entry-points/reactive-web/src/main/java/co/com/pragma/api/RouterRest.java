@@ -2,9 +2,10 @@ package co.com.pragma.api;
 
 import co.com.pragma.api.config.ApplicationPath;
 import co.com.pragma.api.constants.ApplicationWebKeys;
+import co.com.pragma.api.dto.ApplicationListResponseDto;
 import co.com.pragma.api.dto.ApplicationResponseDto;
 import co.com.pragma.api.dto.CreateApplicationDto;
-import co.com.pragma.api.dto.ApplicationListResponseDto;
+import co.com.pragma.model.application.PathApplication;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,11 +18,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Mono;
 
-import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH;
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY;
 import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -73,7 +71,26 @@ public class RouterRest {
             content = @Content(mediaType = ApplicationWebKeys.OPEN_API_MEDIA_TYPE,
               schema = @Schema(implementation = ApplicationListResponseDto.class)))
         }
-      ))
+      )),
+    @RouterOperation(
+      path = ApplicationWebKeys.OPEN_API_APPLICATION_PATH,
+      method = RequestMethod.PATCH,
+      beanClass = Handler.class,
+      beanMethod = ApplicationWebKeys.OPEN_API_BEAN_METHOD_PATCH_APPLICATION,
+      operation = @Operation(
+        operationId = ApplicationWebKeys.OPEN_API_OPERATION_PATCH_APPLICATION,
+        summary = ApplicationWebKeys.OPEN_API_SUMMARY_PATCH_APPLICATION,
+        requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PathApplication.class))),
+        responses = {
+          @ApiResponse(
+            responseCode = ApplicationWebKeys.OPEN_API_RESPONSE_CODE,
+            description = ApplicationWebKeys.OPEN_API_DESCRIPTION_SUCCESS,
+            content = @Content(mediaType = ApplicationWebKeys.OPEN_API_MEDIA_TYPE,
+              schema = @Schema(implementation = ApplicationResponseDto.class))
+          )
+        }
+      )
+    )
   })
   @Bean
   public RouterFunction<ServerResponse> routerFunction(Handler handler) {
