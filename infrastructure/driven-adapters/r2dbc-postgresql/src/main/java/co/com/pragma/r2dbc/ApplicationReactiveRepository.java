@@ -1,6 +1,7 @@
 package co.com.pragma.r2dbc;
 
 import org.springframework.data.r2dbc.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
@@ -22,14 +23,16 @@ public interface ApplicationReactiveRepository extends ReactiveCrudRepository<Ap
          "FROM applications a " +
          "LEFT JOIN type_of_loan lt ON a.loan_type_id = lt.loan_type_id " +
          "LEFT JOIN status s ON a.status_id = s.status_id " +
-         "WHERE (s.status_id = COALESCE(:status, s.status_id)) AND (lt.loan_type_id = COALESCE(:loanType, lt.loan_type_id)) " +
+         "WHERE (:status IS NULL OR s.status_id = :status) AND (:loanType IS NULL OR lt.loan_type_id = :loanType) " +
+         "AND (:email IS NULL OR a.email = :email) " +
          "LIMIT :pageSize OFFSET (:pageNumber - 1) * :pageSize")
-  Flux<ApplicationDataEntity> findByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber);
+  Flux<ApplicationDataEntity> findByStatusAndLoanTypeAndEmail(@Param("email") String email, @Param("status") Integer status, @Param("loanType") Integer loanType, @Param("pageSize") Integer pageSize, @Param("pageNumber") Integer pageNumber);
 
   @Query("SELECT COUNT(*) FROM applications a " +
          "LEFT JOIN type_of_loan lt ON a.loan_type_id = lt.loan_type_id " +
          "LEFT JOIN status s ON a.status_id = s.status_id " +
-         "WHERE (s.status_id = COALESCE(:status, s.status_id)) AND (lt.loan_type_id = COALESCE(:loanType, lt.loan_type_id))")
-  Mono<Long> countByStatusAndLoanType(Integer status, Integer loanType);
+         "WHERE (:status IS NULL OR s.status_id = :status) AND (:loanType IS NULL OR lt.loan_type_id = :loanType) " +
+         "AND (:email IS NULL OR a.email = :email) ")
+  Mono<Long> countByStatusAndLoanTypeAndEmail(@Param("email") String email, @Param("status") Integer status, @Param("loanType") Integer loanType);
 
 }

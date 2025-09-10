@@ -75,7 +75,8 @@ public class Handler {
           .flatMap(pageNumber -> {
             Integer status = req.queryParam("status").map(Integer::parseInt).orElse(null);
             Integer loanType = req.queryParam("loanType").map(Integer::parseInt).orElse(null);
-            return applicationControllerUseCase.getApplicationsByStatusAndLoanType(status, loanType, pageSize, pageNumber);
+            String email = req.queryParam("email").orElse(null);
+            return applicationControllerUseCase.getApplicationsByStatusAndLoanTypeAndEmail(email, status, loanType, pageSize, pageNumber);
           })
         )
       )

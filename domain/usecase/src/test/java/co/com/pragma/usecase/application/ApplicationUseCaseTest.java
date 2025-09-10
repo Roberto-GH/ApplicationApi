@@ -112,7 +112,7 @@ class ApplicationUseCaseTest {
     when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
 
     when(applicationRepository.countByStatusAndLoanType(anyInt(), anyInt())).thenReturn(Mono.just(totalRecords));
-    when(applicationRepository.findByStatusAndLoanType(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.just(appData1, appData2));
+    when(applicationRepository.findByStatusAndLoanTypeAndEmail(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.just(appData1, appData2));
 
     Mono<ApplicationList> result = applicationUseCase.getApplicationsByStatusAndLoanType(status, loanType, pageSize, pageNumber);
 
@@ -141,7 +141,7 @@ class ApplicationUseCaseTest {
     when(statusRepository.findById(any(Long.class))).thenReturn(Mono.just(Status.builder().statusId(2L).name("Aprobada").build()));
     when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
     when(applicationRepository.countByStatusAndLoanType(anyInt(), anyInt())).thenReturn(Mono.just(totalRecords));
-    when(applicationRepository.findByStatusAndLoanType(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.empty());
+    when(applicationRepository.findByStatusAndLoanTypeAndEmail(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.empty());
     Mono<ApplicationList> result = applicationUseCase.getApplicationsByStatusAndLoanType(status, loanType, pageSize, pageNumber);
     StepVerifier.create(result).assertNext(applicationList -> {
       assertNotNull(applicationList);
@@ -171,7 +171,7 @@ class ApplicationUseCaseTest {
     when(statusRepository.findById(any(Long.class))).thenReturn(Mono.just(Status.builder().statusId(2L).name("Aprobada").build()));
     when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
     when(applicationRepository.countByStatusAndLoanType(anyInt(), anyInt())).thenReturn(Mono.just(1L));
-    when(applicationRepository.findByStatusAndLoanType(anyInt(), anyInt(), anyInt(), anyInt()))
+    when(applicationRepository.findByStatusAndLoanTypeAndEmail(anyInt(), anyInt(), anyInt(), anyInt()))
       .thenAnswer(invocation -> {
         List<ApplicationData> processedData = new ArrayList<>();
         ApplicationData appData1 = new ApplicationData();
@@ -205,7 +205,7 @@ class ApplicationUseCaseTest {
     when(statusRepository.findById(any(Long.class))).thenReturn(Mono.just(Status.builder().statusId(2L).name("Aprobada").build()));
     when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
     when(applicationRepository.countByStatusAndLoanType(anyInt(), anyInt())).thenReturn(Mono.just(totalRecords));
-    when(applicationRepository.findByStatusAndLoanType(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.just(appData9));
+    when(applicationRepository.findByStatusAndLoanTypeAndEmail(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.just(appData9));
 
     Mono<ApplicationList> result = applicationUseCase.getApplicationsByStatusAndLoanType(status, loanType, pageSize, pageNumber);
 
@@ -230,7 +230,7 @@ class ApplicationUseCaseTest {
 
     when(statusRepository.findById(any(Long.class))).thenReturn(Mono.just(Status.builder().statusId(2L).name("Aprobada").build()));
     when(applicationRepository.countByStatusAndLoanType(anyInt(), any())).thenReturn(Mono.just(totalRecords));
-    when(applicationRepository.findByStatusAndLoanType(anyInt(), any(), anyInt(), anyInt())).thenReturn(Flux.empty());
+    when(applicationRepository.findByStatusAndLoanTypeAndEmail(anyInt(), any(), anyInt(), anyInt())).thenReturn(Flux.empty());
 
     Mono<ApplicationList> result = applicationUseCase.getApplicationsByStatusAndLoanType(status, null, pageSize, pageNumber);
 
@@ -254,7 +254,7 @@ class ApplicationUseCaseTest {
 
     when(loanTypeRepository.findById(any(Long.class))).thenReturn(Mono.just(validLoanType));
     when(applicationRepository.countByStatusAndLoanType(any(), anyInt())).thenReturn(Mono.just(totalRecords));
-    when(applicationRepository.findByStatusAndLoanType(any(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.empty());
+    when(applicationRepository.findByStatusAndLoanTypeAndEmail(any(), anyInt(), anyInt(), anyInt())).thenReturn(Flux.empty());
 
     Mono<ApplicationList> result = applicationUseCase.getApplicationsByStatusAndLoanType(null, loanType, pageSize, pageNumber);
 

@@ -30,6 +30,7 @@ public class ApplicationWebKeys {
   public static final String TOKEN = "token";
   public static final String STRING_AUTH = "auth";
   public static final String STRING_SWAGGER = "swagger";
+  public static final String STRING_ACTUATOR = "actuator";
   public static final String STRING_DOCS = "v3/api-docs";
   public static final String STRING_WEBJARS = "webjars";
   public static final String NO_TOKEN = "No token was found";
@@ -70,7 +71,8 @@ public class ApplicationWebKeys {
   public static final String OPEN_API_OPERATION_PATCH_APPLICATION = "patchApplication";
   public static final String OPEN_API_SUMMARY_PATCH_APPLICATION = "Patch an existing application";
 
-  public static final String[] ALLOWED_PATHS = new String[]{"/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/swagger-ui/**"};
+  public static final String[] ALLOWED_PATHS = new String[]{"/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/swagger-ui/**",
+    "/actuator/prometheus/**", "/actuator/prometheus", "/actuator/**"};
 
   @Getter
   public enum HttpHeadersEnum {

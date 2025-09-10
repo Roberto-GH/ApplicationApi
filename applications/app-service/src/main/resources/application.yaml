@@ -46,8 +46,20 @@ adapter:
     email: "${ADMIN_EMAIL}"
     password: "${ADMIN_PASSWORD}"
   sqs:
+    queues:
+      validation-queue: "${QUEUE_URL_VALIDATION}"
+      notification-queue: "${QUEUE_URL_NOTIFICATION}"
     region: "us-east-1"
-    queueUrl: "${QUEUE_URL}"
+
+entrypoint:
+  sqs:
+    region: "${AWS_REGION}"
+    queueUrl: "${QUEUE_URL_LISTENER}"
+    waitTimeSeconds: 20
+    maxNumberOfMessages: 3
+    visibilityTimeoutSeconds: 10
+    numberOfThreads: 1
+
 resilience4j:
   circuitbreaker:
     instances:

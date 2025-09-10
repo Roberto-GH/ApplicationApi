@@ -1,15 +1,19 @@
 package co.com.pragma.model.application;
 
+import java.util.List;
+
 public class MessageBody {
 
   private final String email;
   private final String subject;
   private final String message;
+  private final List<PaymentPlan> paymentPlan;
 
   private MessageBody(Builder builder) {
     this.email = builder.email;
     this.subject = builder.subject;
     this.message = builder.message;
+    this.paymentPlan = builder.paymentPlan;
   }
 
   public String getEmail() {
@@ -24,6 +28,10 @@ public class MessageBody {
     return message;
   }
 
+  public List<PaymentPlan> getPaymentPlan() {
+    return paymentPlan;
+  }
+
   public static Builder builder() {
     return new Builder();
   }
@@ -33,6 +41,7 @@ public class MessageBody {
     private String email;
     private String subject;
     private String message;
+    private List<PaymentPlan> paymentPlan;
 
     public Builder email(String email) {
       this.email = email;
@@ -46,6 +55,11 @@ public class MessageBody {
 
     public Builder message(String message) {
       this.message = message;
+      return this;
+    }
+
+    public Builder paymentPlan(List<PaymentPlan> paymentPlan) {
+      this.paymentPlan = paymentPlan;
       return this;
     }
 

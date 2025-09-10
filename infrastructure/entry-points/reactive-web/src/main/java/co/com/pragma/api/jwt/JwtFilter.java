@@ -21,7 +21,7 @@ public class JwtFilter implements WebFilter {
     ServerHttpRequest request = exchange.getRequest();
     String path = request.getPath().value();
     if (path.contains(ApplicationWebKeys.STRING_AUTH) || path.contains(ApplicationWebKeys.STRING_SWAGGER) || path.contains(ApplicationWebKeys.STRING_DOCS) ||
-        path.contains(ApplicationWebKeys.STRING_WEBJARS))
+        path.contains(ApplicationWebKeys.STRING_WEBJARS) || path.contains(ApplicationWebKeys.STRING_ACTUATOR))
       return chain.filter(exchange);
     String auth = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
     if(auth == null)
