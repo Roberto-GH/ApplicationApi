@@ -69,19 +69,22 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
       .then(Mono.just(application))
       .doOnNext(validatedApp -> LOG.info(ApplicationUseCaseKeys.APPLICATION_VALIDATED_SUCCESSFULLY + validatedApp.getEmail()))
       .flatMap(applicationRepository::saveApplication)
-      .flatMap(savedApp -> sendValidationRequest(savedApp).thenReturn(savedApp));
+      .flatMap(this::sendValidationRequest);
   }
 
-  private Mono<Void> sendValidationRequest(Application savedApplication) {
+  private Mono<Application> sendValidationRequest(Application savedApplication) {
     Mono<User> userMono = userRestGateway.findUserByEmail(savedApplication.getEmail());
     Mono<LoanType> loanTypeMono = loanTypeRepository.findById(savedApplication.getLoanTypeId());
     Flux<ApplicationData> activeLoansFlux = applicationRepository
       .findByStatusAndLoanTypeAndEmail(savedApplication.getEmail(), ApplicationUseCaseKeys.ID_STATUS_APPROVED, null, ApplicationUseCaseKeys.PAGE_SIZE_DEFAULT_VALUE,
                                        ApplicationUseCaseKeys.PAGE_INIT_VALUE);
-    return Mono.zip(userMono, activeLoansFlux.collectList(), loanTypeMono).map(tuple -> {
+    return Mono.zip(userMono, activeLoansFlux.collectList(), loanTypeMono).flatMap(tuple -> {
       User user = tuple.getT1();
       List<ApplicationData> activeLoansData = tuple.getT2();
       LoanType loanType = tuple.getT3();
+      if (Boolean.FALSE.equals(loanType.getAutomaticValidation())) {
+        return Mono.just(savedApplication);
+      }
       NewLoan newLoan = NewLoan
         .builder()
         .loanId(savedApplication.getApplicationId().toString())
@@ -99,38 +102,36 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
           .requestedTermMonths(appData.getTerm())
           .build())
         .collect(Collectors.toList());
-      return ValidationRequestEvent
+      return Mono.just(ValidationRequestEvent
         .builder()
         .applicantEmail(user.getEmail())
         .applicantBaseSalary(BigDecimal.valueOf(user.getBaseSalary()))
         .newLoan(newLoan)
         .activeLoans(activeLoans)
-        .build();
-    }).flatMap(validationRequestEvent -> senderGateway.send(validationRequestEvent, QueueAlias.VALIDATIONS)).then();
+        .build())
+        .flatMap(validationRequestEvent -> senderGateway.send(validationRequestEvent, QueueAlias.VALIDATIONS))
+        .thenReturn(savedApplication);
+    });
   }
 
   @Override
   public Mono<ApplicationList> getApplicationsByStatusAndLoanTypeAndEmail(String email, Integer status, Integer loanType, Integer pageSize, Integer pageNumber) {
     List<Mono<Void>> validations = new ArrayList<>();
-
     if (status != null) {
       validations.add(statusRepository.findById(Long.valueOf(status))
         .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.STATUS_ID_NOT_EXIST + status)))
         .then());
     }
-
     if (loanType != null) {
       validations.add(loanTypeRepository.findById(Long.valueOf(loanType))
         .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.LOAN_ID_NOT_EXIST + loanType)))
         .then());
     }
-
     if (email != null) {
       validations.add(userRestGateway.findUserByEmail(email)
         .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.EMAIL_NOT_EXIST + email)))
         .then());
     }
-
     return Mono.when(validations.toArray(new Mono[0]))
       .then(Mono.defer(() -> applicationRepository.countByStatusAndLoanTypeAndEmail(email, status, loanType)))
       .flatMap(totalRecords -> {
