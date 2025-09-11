@@ -1,25 +1,35 @@
 package co.com.pragma.usecase.application;
 
-import co.com.pragma.model.application.Application;
-import co.com.pragma.model.application.ApplicationData;
-import co.com.pragma.model.application.ApplicationList;
-import co.com.pragma.model.application.MessageBody;
+import co.com.pragma.model.application.*;
+import co.com.pragma.model.application.enums.QueueAlias;
+import co.com.pragma.model.application.event.ActiveLoan;
+import co.com.pragma.model.application.event.NewLoan;
+import co.com.pragma.model.application.event.ValidationRequestEvent;
 import co.com.pragma.model.application.exception.DomainValidationException;
 import co.com.pragma.model.application.exception.ErrorEnum;
-import co.com.pragma.model.application.gateways.ApplicationRepository;
-import co.com.pragma.model.application.gateways.LoanTypeRepository;
-import co.com.pragma.model.application.gateways.SenderGateway;
-import co.com.pragma.model.application.gateways.StatusRepository;
-import co.com.pragma.model.application.validation.*;
+import co.com.pragma.model.application.gateways.*;
+import co.com.pragma.model.application.validation.AmountValidationSpecification;
+import co.com.pragma.model.application.validation.EmailSpecification;
+import co.com.pragma.model.application.validation.NotNullIntegerSpecification;
+import co.com.pragma.model.application.validation.NotNullNumberSpecification;
+import co.com.pragma.model.application.validation.Specification;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
 import co.com.pragma.usecase.application.constants.ApplicationUseCaseKeys;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class ApplicationUseCase implements ApplicationControllerUseCase {
 
@@ -29,18 +39,22 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
   private static final Specification<String> EMAIL_FORMAT = new EmailSpecification(ApplicationUseCaseKeys.EMAIL_FIELD);
   private static final Specification<Long> DOCUMENT_VALIDATE = new NotNullNumberSpecification(ApplicationUseCaseKeys.DOCUMENT_FIELD);
   private static final Specification<BigDecimal> AMOUNT_VALIDATE = new AmountValidationSpecification(ApplicationUseCaseKeys.AMOUNT_FIELD);
+  private static final BigDecimal PERCENTAGE_DIVISOR = new BigDecimal("100");
+  private static final BigDecimal MONTHS_IN_YEAR = new BigDecimal("12");
 
   private final ApplicationRepository applicationRepository;
   private final LoanTypeRepository loanTypeRepository;
   private final StatusRepository statusRepository;
   private final SenderGateway senderGateway;
+  private final UserRestGateway userRestGateway;
 
   public ApplicationUseCase(ApplicationRepository applicationRepository, LoanTypeRepository loanTypeRepository, StatusRepository statusRepository,
-                            SenderGateway senderGateway) {
+                            SenderGateway senderGateway, UserRestGateway userRestGateway) {
     this.applicationRepository = applicationRepository;
     this.loanTypeRepository = loanTypeRepository;
     this.statusRepository = statusRepository;
     this.senderGateway = senderGateway;
+    this.userRestGateway = userRestGateway;
   }
 
   @Override
@@ -54,28 +68,79 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
       .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.LOAN_ID_NOT_EXIST + application.getLoanTypeId())))
       .then(Mono.just(application))
       .doOnNext(validatedApp -> LOG.info(ApplicationUseCaseKeys.APPLICATION_VALIDATED_SUCCESSFULLY + validatedApp.getEmail()))
-      .flatMap(applicationRepository::saveApplication);
+      .flatMap(applicationRepository::saveApplication)
+      .flatMap(savedApp -> sendValidationRequest(savedApp).thenReturn(savedApp));
+  }
+
+  private Mono<Void> sendValidationRequest(Application savedApplication) {
+    Mono<User> userMono = userRestGateway.findUserByEmail(savedApplication.getEmail());
+    Mono<LoanType> loanTypeMono = loanTypeRepository.findById(savedApplication.getLoanTypeId());
+    Flux<ApplicationData> activeLoansFlux = applicationRepository
+      .findByStatusAndLoanTypeAndEmail(savedApplication.getEmail(), ApplicationUseCaseKeys.ID_STATUS_APPROVED, null, ApplicationUseCaseKeys.PAGE_SIZE_DEFAULT_VALUE,
+                                       ApplicationUseCaseKeys.PAGE_INIT_VALUE);
+    return Mono.zip(userMono, activeLoansFlux.collectList(), loanTypeMono).map(tuple -> {
+      User user = tuple.getT1();
+      List<ApplicationData> activeLoansData = tuple.getT2();
+      LoanType loanType = tuple.getT3();
+      NewLoan newLoan = NewLoan
+        .builder()
+        .loanId(savedApplication.getApplicationId().toString())
+        .requestedAmount(savedApplication.getAmount())
+        .monthlyInterestRate(loanType.getInterestRate())
+        .requestedTermMonths(savedApplication.getTerm())
+        .build();
+      List<ActiveLoan> activeLoans = activeLoansData
+        .stream()
+        .map(appData -> ActiveLoan
+          .builder()
+          .loanId(appData.getId().toString())
+          .requestedAmount(appData.getAmount())
+          .monthlyInterestRate(appData.getInterestRate())
+          .requestedTermMonths(appData.getTerm())
+          .build())
+        .collect(Collectors.toList());
+      return ValidationRequestEvent
+        .builder()
+        .applicantEmail(user.getEmail())
+        .applicantBaseSalary(BigDecimal.valueOf(user.getBaseSalary()))
+        .newLoan(newLoan)
+        .activeLoans(activeLoans)
+        .build();
+    }).flatMap(validationRequestEvent -> senderGateway.send(validationRequestEvent, QueueAlias.VALIDATIONS)).then();
   }
 
   @Override
-  public Mono<ApplicationList> getApplicationsByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber) {
-    Mono<Void> validationMono = Mono.empty();
+  public Mono<ApplicationList> getApplicationsByStatusAndLoanTypeAndEmail(String email, Integer status, Integer loanType, Integer pageSize, Integer pageNumber) {
+    List<Mono<Void>> validations = new ArrayList<>();
+
     if (status != null) {
-      validationMono = validationMono.then(statusRepository.findById(Long.valueOf(status))
+      validations.add(statusRepository.findById(Long.valueOf(status))
         .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.STATUS_ID_NOT_EXIST + status)))
         .then());
     }
+
     if (loanType != null) {
-      validationMono = validationMono.then(loanTypeRepository.findById(Long.valueOf(loanType))
+      validations.add(loanTypeRepository.findById(Long.valueOf(loanType))
         .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.LOAN_ID_NOT_EXIST + loanType)))
         .then());
     }
-    return validationMono.then(applicationRepository.countByStatusAndLoanType(status, loanType)
+
+    if (email != null) {
+      validations.add(userRestGateway.findUserByEmail(email)
+        .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.EMAIL_NOT_EXIST + email)))
+        .then());
+    }
+
+    return Mono.when(validations.toArray(new Mono[0]))
+      .then(Mono.defer(() -> applicationRepository.countByStatusAndLoanTypeAndEmail(email, status, loanType)))
       .flatMap(totalRecords -> {
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
-        return applicationRepository.findByStatusAndLoanType(status, loanType, pageSize, pageNumber)
-          .map(this::calculateTotalMonthlyPayment)
-          .collectList()
+        return applicationRepository.findByStatusAndLoanTypeAndEmail(email, status, loanType, pageSize, pageNumber)
+          .map(app -> {
+            List<PaymentPlan> paymentPlan = calculatePaymentPlan(app.getAmount(), app.getInterestRate(), app.getTerm());
+            app.setTotalMonthlyPayment(paymentPlan.getFirst().principalForMonthNumber());
+            return app;
+          }).collectList()
           .map(applications -> ApplicationList
             .builder()
             .pageNumber(pageNumber)
@@ -84,7 +149,7 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
             .totalPages(totalPages)
             .data(applications)
             .build());
-      }));
+      });
   }
 
   @Override
@@ -94,59 +159,87 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
 
   @Override
   public Mono<Application> patchApplicationStatus(Application application) {
-    return applicationRepository.saveApplication(application)
-      .onErrorResume(e -> Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.ERROR_UPDATE)))
-      .flatMap(appl -> {
-        if (Objects.equals(application.getStatusId(), ApplicationUseCaseKeys.APPROVED_STATUS_ID) ||
-            Objects.equals(application.getStatusId(), ApplicationUseCaseKeys.REJECTED_STATUS_ID)) {
-          return statusRepository.findById(application.getStatusId())
-            .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.STATUS_ID_NOT_EXIST + application.getStatusId())))
-            .flatMap(status -> {
-              MessageBody body = MessageBody
-                .builder()
-                .subject(ApplicationUseCaseKeys.SUBJECT_UPDATE)
-                .email(application.getEmail())
-                .message(ApplicationUseCaseKeys.MESSAGE_UPDATE + status.getName())
-                .build();
-              return senderGateway.send(body)
-                .onErrorResume(e -> Mono.error(new DomainValidationException(ErrorEnum.INTERNAL_CONFLIC_SERVER)))
-                .map(send -> appl);
-            });
-        } else {
-          return Mono.just(appl);
-        }
+    return statusRepository.findById(application.getStatusId())
+      .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.STATUS_ID_NOT_EXIST + application.getStatusId())))
+      .flatMap(status ->
+        applicationRepository.saveApplication(application)
+          .onErrorResume(e -> Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.ERROR_UPDATE)))
+          .flatMap(savedApplication -> processStatusUpdate(savedApplication, status))
+      );
+  }
+
+  private Mono<Application> processStatusUpdate(Application savedApplication, Status status) {
+    boolean isApproved = Objects.equals(savedApplication.getStatusId(), ApplicationUseCaseKeys.APPROVED_STATUS_ID);
+    boolean isRejected = Objects.equals(savedApplication.getStatusId(), ApplicationUseCaseKeys.REJECTED_STATUS_ID);
+    if (!isApproved && !isRejected) {
+      return Mono.just(savedApplication);
+    }
+    if (isApproved) {
+      return handleApprovedStatus(savedApplication, status);
+    }
+    return handleRejectedStatus(savedApplication, status);
+  }
+
+  private Mono<Application> handleApprovedStatus(Application savedApplication, Status status) {
+    return loanTypeRepository
+      .findById(savedApplication.getLoanTypeId())
+      .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.LOAN_ID_NOT_EXIST + savedApplication.getLoanTypeId())))
+      .flatMap(loanType -> {
+        List<PaymentPlan> paymentPlan = calculatePaymentPlan(savedApplication.getAmount(), loanType.getInterestRate(), savedApplication.getTerm());
+        MessageBody body = MessageBody.builder()
+          .subject(ApplicationUseCaseKeys.SUBJECT_UPDATE)
+          .email(savedApplication.getEmail())
+          .message(ApplicationUseCaseKeys.MESSAGE_UPDATE + status.getName())
+          .paymentPlan(paymentPlan)
+          .build();
+        return senderGateway.send(body, QueueAlias.NOTIFICATIONS).thenReturn(savedApplication);
       });
   }
 
-  private ApplicationData calculateTotalMonthlyPayment(ApplicationData appData) {
-    LOG.info(ApplicationUseCaseKeys.APPLICATION_STATUS + appData.getStatusId() + " - " + appData.getApplicationStatus());
-    if(!Objects.equals(appData.getStatusId(), ApplicationUseCaseKeys.APPROVED_ID)) {
-      return appData;
-    }
-    BigDecimal principal = appData.getAmount();
-    BigDecimal annualInterestRate = appData.getInterestRate();
-    Integer termInMonths = appData.getTerm();
-    if (principal == null || annualInterestRate == null || termInMonths == null || termInMonths <= 0 || annualInterestRate.compareTo(BigDecimal.ZERO) < 0) {
-        appData.setTotalMonthlyPayment(BigDecimal.ZERO);
-        return appData;
-    }
-    // Avoid division by zero if interest rate is 0
-    if (annualInterestRate.compareTo(BigDecimal.ZERO) == 0) {
-      BigDecimal calculatedPayment = principal.divide(BigDecimal.valueOf(termInMonths), 2, RoundingMode.HALF_UP);
-      appData.setTotalMonthlyPayment(calculatedPayment);
-      return appData;
-    }
-    // Convert annual percentage rate to monthly decimal rate
-    BigDecimal monthlyRate = annualInterestRate.divide(new BigDecimal(ApplicationUseCaseKeys.STRING_100), MathContext.DECIMAL128)
-                                               .divide(new BigDecimal(ApplicationUseCaseKeys.STRING_12), MathContext.DECIMAL128);
-    //Fórmula de Amortización (Fórmula de la Anualidad) => M = P * [r(1+r)^n] / [(1+r)^n – 1]
-    BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate);//(1 + r)
-    BigDecimal onePlusRToTheN = onePlusR.pow(termInMonths, MathContext.DECIMAL128);//(1 + r)^n
-    BigDecimal denominator = onePlusRToTheN.subtract(BigDecimal.ONE);//[(1+r)^n – 1]
-    BigDecimal numerator = monthlyRate.multiply(onePlusRToTheN);//r(1+r)^n
-    //P *(numerador / denominador)
-    BigDecimal monthlyPayment = principal.multiply(numerator).divide(denominator, 2, RoundingMode.HALF_UP);
-    appData.setTotalMonthlyPayment(monthlyPayment);
-    return appData;
+  private Mono<Application> handleRejectedStatus(Application savedApplication, Status status) {
+    MessageBody body = MessageBody.builder()
+      .subject(ApplicationUseCaseKeys.SUBJECT_UPDATE)
+      .email(savedApplication.getEmail())
+      .message(ApplicationUseCaseKeys.MESSAGE_UPDATE + status.getName())
+      .build();
+    return senderGateway.send(body, QueueAlias.NOTIFICATIONS).thenReturn(savedApplication);
   }
+
+  private List<PaymentPlan> calculatePaymentPlan(BigDecimal principal, BigDecimal annualInterestRate, Integer termInMonths) {
+    if (principal == null || annualInterestRate == null || termInMonths == null || termInMonths <= 0 || annualInterestRate.compareTo(BigDecimal.ZERO) < 0) {
+      return Collections.emptyList();
+    }
+    BigDecimal monthlyPayment;
+    if (annualInterestRate.compareTo(BigDecimal.ZERO) == 0) {
+      monthlyPayment = principal.divide(BigDecimal.valueOf(termInMonths), 2, RoundingMode.HALF_UP);
+    } else {
+      BigDecimal monthlyRate = annualInterestRate.divide(PERCENTAGE_DIVISOR, MathContext.DECIMAL128).divide(MONTHS_IN_YEAR, MathContext.DECIMAL128);
+      BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate);
+      BigDecimal onePlusRToTheN = onePlusR.pow(termInMonths, MathContext.DECIMAL128);
+      BigDecimal denominator = onePlusRToTheN.subtract(BigDecimal.ONE);
+      BigDecimal numerator = monthlyRate.multiply(onePlusRToTheN);
+      monthlyPayment = principal.multiply(numerator).divide(denominator, 2, RoundingMode.HALF_UP);
+    }
+    List<PaymentPlan> plan = new ArrayList<>();
+    BigDecimal remainingBalance = principal;
+    LocalDate paymentDate = LocalDate.now().plusMonths(1);
+    for (int i = 1; i <= termInMonths; i++) {
+      BigDecimal interestForMonth = remainingBalance
+        .multiply(annualInterestRate.divide(PERCENTAGE_DIVISOR, MathContext.DECIMAL128).divide(MONTHS_IN_YEAR, MathContext.DECIMAL128))
+        .setScale(2, RoundingMode.HALF_UP);
+      BigDecimal principalForMonth = monthlyPayment.subtract(interestForMonth);
+      remainingBalance = remainingBalance.subtract(principalForMonth);
+      PaymentPlan monthlyInstallment = new PaymentPlan(i, formatCurrency(principalForMonth), principalForMonth, formatCurrency(interestForMonth),
+                                                       formatCurrency(monthlyPayment), formatCurrency(remainingBalance.max(BigDecimal.ZERO)));
+      plan.add(monthlyInstallment);
+      paymentDate = paymentDate.plusMonths(1);
+    }
+    return plan;
+  }
+
+  private String formatCurrency(BigDecimal amount) {
+    NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.of("es", "CO"));
+    return currencyFormatter.format(amount);
+  }
+
 }

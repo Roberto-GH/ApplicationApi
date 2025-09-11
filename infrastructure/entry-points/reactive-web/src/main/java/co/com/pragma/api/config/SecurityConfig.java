@@ -26,13 +26,13 @@ public class SecurityConfig {
   public SecurityWebFilterChain filterChain(ServerHttpSecurity http, JwtFilter jwtFilter) {
     return http
       .csrf(ServerHttpSecurity.CsrfSpec::disable)
-      .exceptionHandling(spec -> spec.accessDeniedHandler(accessDeniedHandler))
       .authorizeExchange(exchangeSpec -> exchangeSpec
         .pathMatchers(ApplicationWebKeys.ALLOWED_PATHS)
         .permitAll()
         .anyExchange()
         .authenticated())
       .addFilterAfter(jwtFilter, SecurityWebFiltersOrder.FIRST)
+      .exceptionHandling(spec -> spec.accessDeniedHandler(accessDeniedHandler))
       .securityContextRepository(securityContextRepository)
       .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
       .formLogin(ServerHttpSecurity.FormLoginSpec::disable)

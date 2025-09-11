@@ -61,6 +61,7 @@ public class RouterRest {
         parameters = {
           @Parameter(in = QUERY, name = ApplicationWebKeys.PARAM_STATUS, description =ApplicationWebKeys. PARAM_STATUS_DESCRIPTION),
           @Parameter(in = QUERY, name = ApplicationWebKeys.PARAM_LOAN_TYPE, description = ApplicationWebKeys.PARAM_LOAN_TYPE_DESCRIPTION),
+          @Parameter(in = QUERY, name = ApplicationWebKeys.PARAM_EMAIL, description = ApplicationWebKeys.PARAM_EMAIL_DESCRIPTION),
           @Parameter(in = QUERY, name = ApplicationWebKeys.PARAM_PAGE_SIZE, description = ApplicationWebKeys.PARAM_PAGE_SIZE_DESCRIPTION, required = true),
           @Parameter(in = QUERY, name = ApplicationWebKeys.PARAM_PAGE_NUMBER, description = ApplicationWebKeys.PARAM_PAGE_NUMBER_DESCRIPTION, required = true)
         },

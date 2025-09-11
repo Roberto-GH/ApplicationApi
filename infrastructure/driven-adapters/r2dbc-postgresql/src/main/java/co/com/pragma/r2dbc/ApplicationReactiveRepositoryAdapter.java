@@ -34,8 +34,8 @@ public class ApplicationReactiveRepositoryAdapter
   }
 
   @Override
-  public Flux<ApplicationData> findByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber) {
-    return repository.findByStatusAndLoanType(status, loanType, pageSize, pageNumber)
+  public Flux<ApplicationData> findByStatusAndLoanTypeAndEmail(String email, Integer status, Integer loanType, Integer pageSize, Integer pageNumber) {
+    return repository.findByStatusAndLoanTypeAndEmail(email, status, loanType, pageSize, pageNumber)
       .map(m -> mapper.map(m, ApplicationData.class))
       .flatMap(this::completeWithUserData);
   }
@@ -56,8 +56,8 @@ public class ApplicationReactiveRepositoryAdapter
   }
 
   @Override
-  public Mono<Long> countByStatusAndLoanType(Integer status, Integer loanType) {
-    return repository.countByStatusAndLoanType(status, loanType);
+  public Mono<Long> countByStatusAndLoanTypeAndEmail(String email, Integer status, Integer loanType) {
+    return repository.countByStatusAndLoanTypeAndEmail(email, status, loanType);
   }
 
   @Override

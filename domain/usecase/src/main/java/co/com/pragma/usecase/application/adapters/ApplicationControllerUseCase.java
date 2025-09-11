@@ -8,7 +8,7 @@ public interface ApplicationControllerUseCase {
 
   Mono<Application> saveApplication(Application application);
 
-  Mono<ApplicationList> getApplicationsByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber);
+  Mono<ApplicationList> getApplicationsByStatusAndLoanTypeAndEmail(String email, Integer status, Integer loanType, Integer pageSize, Integer pageNumber);
 
   Mono<Application> getApplicationById(String id);
 

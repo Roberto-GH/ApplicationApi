@@ -9,9 +9,9 @@ public interface ApplicationRepository {
 
   Mono<Application> saveApplication(Application application);
 
-  Flux<ApplicationData> findByStatusAndLoanType(Integer status, Integer loanType, Integer pageSize, Integer pageNumber);
+  Flux<ApplicationData> findByStatusAndLoanTypeAndEmail(String email, Integer status, Integer loanType, Integer pageSize, Integer pageNumber);
 
-  Mono<Long> countByStatusAndLoanType(Integer status, Integer loanType);
+  Mono<Long> countByStatusAndLoanTypeAndEmail(String email, Integer status, Integer loanType);
 
   Mono<Application> findById(String id);
 
