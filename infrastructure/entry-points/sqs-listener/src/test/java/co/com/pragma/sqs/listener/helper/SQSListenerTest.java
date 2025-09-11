@@ -2,6 +2,7 @@ package co.com.pragma.sqs.listener.helper;
 
 import co.com.pragma.sqs.listener.SQSProcessor;
 import co.com.pragma.sqs.listener.config.SQSProperties;
+import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,9 @@ class SQSListenerTest {
 
     @Mock
     private SQSProperties sqsProperties;
+
+    @Mock
+    private ApplicationControllerUseCase useCase;
 
     @BeforeEach
     void setUp() {
@@ -59,7 +63,7 @@ class SQSListenerTest {
         var sqsListener = SQSListener.builder()
                 .client(asyncClient)
                 .properties(sqsProperties)
-                .processor(new SQSProcessor())
+                .processor(new SQSProcessor(useCase))
                 .operation("operation")
                 .meterRegistry(new SimpleMeterRegistry())
                 .build();

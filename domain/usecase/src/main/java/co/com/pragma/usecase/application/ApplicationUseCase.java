@@ -111,24 +111,28 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
 
   @Override
   public Mono<ApplicationList> getApplicationsByStatusAndLoanTypeAndEmail(String email, Integer status, Integer loanType, Integer pageSize, Integer pageNumber) {
-    Mono<Void> validationMono = Mono.empty();
+    List<Mono<Void>> validations = new ArrayList<>();
+
     if (status != null) {
-      validationMono = validationMono.then(statusRepository.findById(Long.valueOf(status))
+      validations.add(statusRepository.findById(Long.valueOf(status))
         .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.STATUS_ID_NOT_EXIST + status)))
         .then());
     }
+
     if (loanType != null) {
-      validationMono = validationMono.then(loanTypeRepository.findById(Long.valueOf(loanType))
+      validations.add(loanTypeRepository.findById(Long.valueOf(loanType))
         .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.LOAN_ID_NOT_EXIST + loanType)))
         .then());
     }
+
     if (email != null) {
-      validationMono = validationMono.then(
-        userRestGateway.findUserByEmail(email)
-          .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.EMAIL_NOT_EXIST + email)))
-          .then());
+      validations.add(userRestGateway.findUserByEmail(email)
+        .switchIfEmpty(Mono.error(new DomainValidationException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationUseCaseKeys.EMAIL_NOT_EXIST + email)))
+        .then());
     }
-    return validationMono.then(applicationRepository.countByStatusAndLoanTypeAndEmail(email, status, loanType)
+
+    return Mono.when(validations.toArray(new Mono[0]))
+      .then(Mono.defer(() -> applicationRepository.countByStatusAndLoanTypeAndEmail(email, status, loanType)))
       .flatMap(totalRecords -> {
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
         return applicationRepository.findByStatusAndLoanTypeAndEmail(email, status, loanType, pageSize, pageNumber)
@@ -145,7 +149,7 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
             .totalPages(totalPages)
             .data(applications)
             .build());
-      }));
+      });
   }
 
   @Override
@@ -238,35 +242,4 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
     return currencyFormatter.format(amount);
   }
 
-  private ApplicationData calculateTotalMonthlyPayment(ApplicationData appData) {
-    LOG.info(ApplicationUseCaseKeys.APPLICATION_STATUS + appData.getStatusId() + " - " + appData.getApplicationStatus());
-    if(!Objects.equals(appData.getStatusId(), ApplicationUseCaseKeys.APPROVED_ID)) {
-      return appData;
-    }
-    BigDecimal principal = appData.getAmount();
-    BigDecimal annualInterestRate = appData.getInterestRate();
-    Integer termInMonths = appData.getTerm();
-    if (principal == null || annualInterestRate == null || termInMonths == null || termInMonths <= 0 || annualInterestRate.compareTo(BigDecimal.ZERO) < 0) {
-        appData.setTotalMonthlyPayment(BigDecimal.ZERO);
-        return appData;
-    }
-    // Avoid division by zero if interest rate is 0
-    if (annualInterestRate.compareTo(BigDecimal.ZERO) == 0) {
-      BigDecimal calculatedPayment = principal.divide(BigDecimal.valueOf(termInMonths), 2, RoundingMode.HALF_UP);
-      appData.setTotalMonthlyPayment(calculatedPayment);
-      return appData;
-    }
-    // Convert annual percentage rate to monthly decimal rate
-    BigDecimal monthlyRate = annualInterestRate.divide(PERCENTAGE_DIVISOR, MathContext.DECIMAL128)
-                                               .divide(MONTHS_IN_YEAR, MathContext.DECIMAL128);
-    //Fórmula de Amortización (Fórmula de la Anualidad) => M = P * [r(1+r)^n] / [(1+r)^n – 1]
-    BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate);//(1 + r)
-    BigDecimal onePlusRToTheN = onePlusR.pow(termInMonths, MathContext.DECIMAL128);//(1 + r)^n
-    BigDecimal denominator = onePlusRToTheN.subtract(BigDecimal.ONE);//[(1+r)^n – 1]
-    BigDecimal numerator = monthlyRate.multiply(onePlusRToTheN);//r(1+r)^n
-    //P *(numerador / denominador)
-    BigDecimal monthlyPayment = principal.multiply(numerator).divide(denominator, 2, RoundingMode.HALF_UP);
-    appData.setTotalMonthlyPayment(monthlyPayment);
-    return appData;
-  }
 }

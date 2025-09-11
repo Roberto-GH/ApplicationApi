@@ -62,6 +62,8 @@ public class ApplicationWebKeys {
   public static final String PARAM_PAGE_NUMBER_DESCRIPTION = "Page number";
   public static final String PARAM_STATUS_DESCRIPTION = "Filter by application status";
   public static final String PARAM_LOAN_TYPE_DESCRIPTION = "Filter by loan type";
+  public static final String PARAM_EMAIL = "email";
+  public static final String PARAM_EMAIL_DESCRIPTION = "Email of the applicant to filter applications";
   public static final String ERROR_PAGE_SIZE = "pageSize is required";
   public static final String ERROR_PAGE_NUMBER = "pageNumber is required";
   public static final String INVALIDA_PATCH_APPLICATION_REQUEST = "Fields 'applicationId' and 'statusId' are required and cannot be empty.";
