@@ -3,7 +3,8 @@ package co.com.pragma.model.application.enums;
 public enum QueueAlias {
 
   VALIDATIONS("validation-queue"),
-  NOTIFICATIONS("notification-queue");
+  NOTIFICATIONS("notification-queue"),
+  REPORTS("report-queue");
 
   private final String alias;
 

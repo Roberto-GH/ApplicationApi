@@ -1,10 +1,8 @@
 package co.com.pragma.sqs.listener.helper;
 
 import co.com.pragma.sqs.listener.config.SQSProperties;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Builder;
 import lombok.extern.log4j.Log4j2;
-import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -24,7 +22,6 @@ public class SQSListener {
   private final SqsAsyncClient client;
   private final SQSProperties properties;
   private final Function<Message, Mono<Void>> processor;
-  private final MeterRegistry meterRegistry;
   private String operation;
 
   public SQSListener start() {
@@ -46,7 +43,7 @@ public class SQSListener {
       .flatMap(message -> processor.apply(message)
         .name("async_operation")
         .tag("operation", operation)
-        .tap(Micrometer.metrics(meterRegistry))
+        .metrics()
         .then(confirm(message)))
       .onErrorContinue((e, o) -> log.error("Error listening sqs message", e));
   }

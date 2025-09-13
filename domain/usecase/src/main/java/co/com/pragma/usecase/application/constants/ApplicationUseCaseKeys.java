@@ -24,6 +24,7 @@ public class ApplicationUseCaseKeys {
   public static final Long APPROVED_STATUS_ID = 2L;
   public static final Long REJECTED_STATUS_ID = 3L;
   public static final Integer ID_STATUS_APPROVED = 2;
+  public static final Integer ID_STATUS_REJECTED = 3;
   public static final Integer PAGE_SIZE_DEFAULT_VALUE = 100;
   public static final Integer PAGE_INIT_VALUE = 1;
 

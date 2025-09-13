@@ -188,19 +188,32 @@ public class ApplicationUseCase implements ApplicationControllerUseCase {
       .flatMap(loanType -> {
         List<PaymentPlan> paymentPlan = calculatePaymentPlan(savedApplication.getAmount(), loanType.getInterestRate(), savedApplication.getTerm());
         MessageBody body = MessageBody.builder()
+          .applicationLoanId(savedApplication.getApplicationId())
+          .status(ApplicationUseCaseKeys.ID_STATUS_APPROVED)
           .subject(ApplicationUseCaseKeys.SUBJECT_UPDATE)
           .email(savedApplication.getEmail())
           .message(ApplicationUseCaseKeys.MESSAGE_UPDATE + status.getName())
           .paymentPlan(paymentPlan)
+          .amount(savedApplication.getAmount())
           .build();
-        return senderGateway.send(body, QueueAlias.NOTIFICATIONS).thenReturn(savedApplication);
+        Mono<String> notificationMono = senderGateway
+          .send(body, QueueAlias.NOTIFICATIONS)
+          .doOnError(throwable -> LOG.warning("Error sending notification: " + throwable.getMessage()))
+          .onErrorResume(throwable -> Mono.empty());
+        Mono<String> reportMono = senderGateway
+          .send(body, QueueAlias.REPORTS)
+          .doOnError(throwable -> LOG.warning("Error sending report: " + throwable.getMessage()))
+          .onErrorResume(throwable -> Mono.empty());
+        return Mono.when(notificationMono, reportMono).thenReturn(savedApplication);
       });
   }
 
   private Mono<Application> handleRejectedStatus(Application savedApplication, Status status) {
     MessageBody body = MessageBody.builder()
+      .status(ApplicationUseCaseKeys.ID_STATUS_REJECTED)
       .subject(ApplicationUseCaseKeys.SUBJECT_UPDATE)
       .email(savedApplication.getEmail())
+      .amount(savedApplication.getAmount())
       .message(ApplicationUseCaseKeys.MESSAGE_UPDATE + status.getName())
       .build();
     return senderGateway.send(body, QueueAlias.NOTIFICATIONS).thenReturn(savedApplication);
