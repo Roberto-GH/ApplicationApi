@@ -1,6 +1,5 @@
 package co.com.pragma.sqs.listener.config;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -27,8 +26,6 @@ class SQSConfigTest {
     @Mock
     private SQSProperties sqsProperties;
 
-    @Mock
-    private MeterRegistry meterRegistry;
 
     @BeforeEach
     void init() {
@@ -43,7 +40,7 @@ class SQSConfigTest {
     @Test
     void configSQSListenerIsNotNull() {
         Function<Message, Mono<Void>> processor = message -> Mono.empty();
-        assertThat(sqsConfig.sqsListener(sqsAsyncClient, sqsProperties, processor, meterRegistry)).isNotNull();
+        assertThat(sqsConfig.sqsListener(sqsAsyncClient, sqsProperties, processor)).isNotNull();
     }
 
     @Test
