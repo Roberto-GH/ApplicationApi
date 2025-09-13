@@ -49,6 +49,7 @@ adapter:
     queues:
       validation-queue: "${QUEUE_URL_VALIDATION}"
       notification-queue: "${QUEUE_URL_NOTIFICATION}"
+      report-queue: "${QUEUE_URL_REPORT}"
     region: "us-east-1"
 
 entrypoint:
