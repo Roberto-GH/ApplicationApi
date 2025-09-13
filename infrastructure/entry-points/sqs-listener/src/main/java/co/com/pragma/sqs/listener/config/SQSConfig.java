@@ -24,12 +24,11 @@ import java.util.function.Function;
 public class SQSConfig {
 
   @Bean
-  public SQSListener sqsListener(SqsAsyncClient client, SQSProperties properties, Function<Message, Mono<Void>> fn, MeterRegistry meterRegistry) {
+  public SQSListener sqsListener(SqsAsyncClient client, SQSProperties properties, Function<Message, Mono<Void>> fn) {
     return SQSListener.builder()
       .client(client)
       .properties(properties)
       .processor(fn)
-      .meterRegistry(meterRegistry)
       .build()
       .start();
   }
