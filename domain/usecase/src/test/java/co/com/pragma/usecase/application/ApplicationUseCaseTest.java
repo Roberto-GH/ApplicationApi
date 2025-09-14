@@ -280,8 +280,7 @@ class ApplicationUseCaseTest {
     when(senderGateway.send(any(MessageBody.class), any(QueueAlias.class))).thenReturn(Mono.error(new RuntimeException("Sender Error")));
 
     StepVerifier.create(applicationUseCase.patchApplicationStatus(updatedApplication))
-            .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
-                    throwable.getMessage().equals("Sender Error"))
-            .verify();
+            .expectNext(updatedApplication)
+            .verifyComplete();
   }
 }

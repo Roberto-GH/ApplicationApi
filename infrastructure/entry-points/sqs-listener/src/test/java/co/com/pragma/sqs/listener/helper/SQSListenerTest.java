@@ -65,7 +65,6 @@ class SQSListenerTest {
                 .properties(sqsProperties)
                 .processor(new SQSProcessor(useCase))
                 .operation("operation")
-                .meterRegistry(new SimpleMeterRegistry())
                 .build();
 
         Flux<Void> flow = ReflectionTestUtils.invokeMethod(sqsListener, "listen");
