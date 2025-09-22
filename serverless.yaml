@@ -1,0 +1,585 @@
+service: crediya-application-api
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  vpcName: ${self:service}-vpc-${self:provider.stage}
+  clusterName: ${self:service}-cluster-${self:provider.stage}
+  dbName: users
+  dbUser: postgres
+  dbInstanceIdentifier: ${self:service}-db-${self:provider.stage}
+  dbSecretName: ${self:service}/db-credentials/${self:provider.stage}
+  ecrRepoName: ${ssm:/creadiya/app-api/ecr-repo-name}
+  jwtSecretSsmPath: /creadiya/shared/jwt-secret-arn/${self:provider.stage}
+  jwtSecretArnValue: ${ssm:${self:custom.jwtSecretSsmPath}}
+  adminCredentialsSecretName: ${self:service}/admin-credentials/${self:provider.stage}
+  sqsValidationQueueName: crediya-application-validation-queue-${self:provider.stage}
+  sqsNotificationQueueName: crediya-application-notification-queue-${self:provider.stage}
+  sqsReportQueueName: crediya-application-report-queue-${self:provider.stage}
+  sqsListenerQueueName: crediya-application-validation-response-queue-${self:provider.stage}
+  sqsValidationQueueUrlSsmPath: /creadiya/application-api/sqs-validation-queue-url/${self:provider.stage}
+  sqsNotificationQueueUrlSsmPath: /creadiya/application-api/sqs-notification-queue-url/${self:provider.stage}
+  sqsReportQueueUrlSsmPath: /creadiya/application-api/sqs-report-queue-url/${self:provider.stage}
+  sqsListenerQueueUrlSsmPath: /creadiya/application-api/sqs-validation-response-queue-url/${self:provider.stage}
+  sqsValidationQueueArnSsmPath: /creadiya/application-api/sqs-validation-queue-arn/${self:provider.stage}
+  sqsNotificationQueueArnSsmPath: /creadiya/application-api/sqs-notification-queue-arn/${self:provider.stage}
+  sqsReportQueueArnSsmPath: /creadiya/application-api/sqs-report-queue-arn/${self:provider.stage}
+  sqsListenerQueueArnSsmPath: /creadiya/application-api/sqs-validation-response-queue-arn/${self:provider.stage}
+  
+
+package:
+  individually: true
+
+resources:
+  Resources:
+    # ------------------------------------------------------------
+    # Networking
+    # ------------------------------------------------------------
+    VPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.10.0.0/16
+        EnableDnsSupport: true
+        EnableDnsHostnames: true
+        Tags:
+          - Key: Name
+            Value: ${self:custom.vpcName}
+
+    PublicSubnet:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref VPC
+        CidrBlock: 10.10.1.0/24
+        MapPublicIpOnLaunch: true
+        AvailabilityZone: ${self:provider.region}a
+        Tags:
+          - Key: Name
+            Value: ${self:custom.vpcName}-public
+
+    PrivateSubnetA:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref VPC
+        CidrBlock: 10.10.2.0/24
+        AvailabilityZone: ${self:provider.region}a
+        Tags:
+          - Key: Name
+            Value: ${self:custom.vpcName}-private-a
+
+    PrivateSubnetB:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref VPC
+        CidrBlock: 10.10.3.0/24
+        AvailabilityZone: ${self:provider.region}b
+        Tags:
+          - Key: Name
+            Value: ${self:custom.vpcName}-private-b
+
+    InternetGateway:
+      Type: AWS::EC2::InternetGateway
+
+    VPCGatewayAttachment:
+      Type: AWS::EC2::VPCGatewayAttachment
+      Properties:
+        VpcId: !Ref VPC
+        InternetGatewayId: !Ref InternetGateway
+
+    PublicRouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref VPC
+
+    PublicRoute:
+      Type: AWS::EC2::Route
+      DependsOn: VPCGatewayAttachment
+      Properties:
+        RouteTableId: !Ref PublicRouteTable
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId: !Ref InternetGateway
+
+    PublicSubnetRouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId: !Ref PublicSubnet
+        RouteTableId: !Ref PublicRouteTable
+
+    EIP:
+      Type: AWS::EC2::EIP
+      Properties:
+        Domain: vpc
+
+    NatGateway:
+      Type: AWS::EC2::NatGateway
+      Properties:
+        AllocationId: !GetAtt EIP.AllocationId
+        SubnetId: !Ref PublicSubnet
+
+    PrivateRouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref VPC
+
+    PrivateRoute:
+      Type: AWS::EC2::Route
+      Properties:
+        RouteTableId: !Ref PrivateRouteTable
+        DestinationCidrBlock: 0.0.0.0/0
+        NatGatewayId: !Ref NatGateway
+
+    PrivateSubnetARouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId: !Ref PrivateSubnetA
+        RouteTableId: !Ref PrivateRouteTable
+
+    PrivateSubnetBRouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId: !Ref PrivateSubnetB
+        RouteTableId: !Ref PrivateRouteTable
+
+    # ------------------------------------------------------------
+    # Security
+    # ------------------------------------------------------------
+    ALBSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: "Allow HTTP from anywhere"
+        VpcId: !Ref VPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+
+    ECSSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: "Allow traffic from ALB and to DB"
+        VpcId: !Ref VPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 8090
+            ToPort: 8090
+            SourceSecurityGroupId: !Ref ALBSecurityGroup
+
+    DBSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: "Allow PostgreSQL traffic from ECS"
+        VpcId: !Ref VPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 5432
+            ToPort: 5432
+            SourceSecurityGroupId: !Ref ECSSecurityGroup
+
+    # ------------------------------------------------------------
+    # Database
+    # ------------------------------------------------------------
+    DBSubnetGroup:
+      Type: AWS::RDS::DBSubnetGroup
+      Properties:
+        DBSubnetGroupDescription: "Subnet group for the application DB"
+        SubnetIds:
+          - !Ref PrivateSubnetA
+          - !Ref PrivateSubnetB
+
+    DBSecret:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: ${self:custom.dbSecretName}
+        Description: "Credentials for the Application API database"
+        GenerateSecretString:
+          SecretStringTemplate: !Sub '{"username": "${self:custom.dbUser}"}'
+          GenerateStringKey: "password"
+          PasswordLength: 16
+          ExcludePunctuation: true
+
+    AdminCredentialsSecret:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: ${self:custom.adminCredentialsSecretName}
+        Description: "Admin credentials for Application API"
+        SecretString: !Sub '{"ADMIN_EMAIL": "dummy@example.com", "ADMIN_PASSWORD": "dummy-password"}'
+
+    DBInstance:
+      Type: AWS::RDS::DBInstance
+      Properties:
+        DBInstanceIdentifier: ${self:custom.dbInstanceIdentifier}
+        DBName: ${self:custom.dbName}
+        Engine: postgres
+        EngineVersion: "13"
+        DBInstanceClass: db.t3.micro
+        AllocatedStorage: 20
+        DBSubnetGroupName: !Ref DBSubnetGroup
+        VPCSecurityGroups:
+          - !Ref DBSecurityGroup
+        MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref DBSecret, ':SecretString:username}}']]
+        MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref DBSecret, ':SecretString:password}}']]
+        PubliclyAccessible: false
+        StorageType: gp2
+        BackupRetentionPeriod: 0
+        DeleteAutomatedBackups: true
+        DeletionProtection: false    
+
+    # ------------------------------------------------------------
+    # SQS Queues
+    # ------------------------------------------------------------
+    ValidationQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqsValidationQueueName}
+        VisibilityTimeout: 300 # 5 minutes
+        MessageRetentionPeriod: 345600 # 4 days
+
+    NotificationQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqsNotificationQueueName}
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 345600
+
+    ReportQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqsReportQueueName}
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 345600
+
+    ListenerQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqsListenerQueueName}
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 345600
+
+    # ------------------------------------------------------------
+    # SSM Parameters for SQS Queue URLs
+    # ------------------------------------------------------------
+    SqsValidationQueueUrlSsm:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: ${self:custom.sqsValidationQueueUrlSsmPath}
+        Type: String
+        Value: !GetAtt ValidationQueue.QueueUrl
+
+    SqsNotificationQueueUrlSsm:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: ${self:custom.sqsNotificationQueueUrlSsmPath}
+        Type: String
+        Value: !GetAtt NotificationQueue.QueueUrl
+
+    SqsReportQueueUrlSsm:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: ${self:custom.sqsReportQueueUrlSsmPath}
+        Type: String
+        Value: !GetAtt ReportQueue.QueueUrl
+
+    SqsListenerQueueUrlSsm:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: ${self:custom.sqsListenerQueueUrlSsmPath}
+        Type: String
+        Value: !GetAtt ListenerQueue.QueueUrl
+
+    # ------------------------------------------------------------
+    # SSM Parameters for SQS Queue ARNs
+    # ------------------------------------------------------------
+    SqsValidationQueueArnSsm:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: ${self:custom.sqsValidationQueueArnSsmPath}
+        Type: String
+        Value: !GetAtt ValidationQueue.Arn
+
+    SqsNotificationQueueArnSsm:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: ${self:custom.sqsNotificationQueueArnSsmPath}
+        Type: String
+        Value: !GetAtt NotificationQueue.Arn
+
+    SqsReportQueueArnSsm:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: ${self:custom.sqsReportQueueArnSsmPath}
+        Type: String
+        Value: !GetAtt ReportQueue.Arn
+
+    SqsListenerQueueArnSsm:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: ${self:custom.sqsListenerQueueArnSsmPath}
+        Type: String
+        Value: !GetAtt ListenerQueue.Arn
+
+
+
+    # ------------------------------------------------------------
+    # IAM Roles
+    # ------------------------------------------------------------
+    ECSTaskExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: ecs-tasks.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+    ECSTaskRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: ecs-tasks.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${self:service}-task-policy
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                    - ssm:GetParameter
+                    - sqs:SendMessage
+                    - sqs:ReceiveMessage
+                    - sqs:DeleteMessage
+                    - sqs:GetQueueAttributes
+                    - sqs:GetQueueUrl
+                  Resource:
+                    - !Ref DBSecret
+                    - ${self:custom.jwtSecretArnValue}
+                    - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${self:custom.jwtSecretSsmPath}"
+                    - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${self:custom.sqsValidationQueueUrlSsmPath}"
+                    - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${self:custom.sqsNotificationQueueUrlSsmPath}"
+                    - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${self:custom.sqsReportQueueUrlSsmPath}"
+                    - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${self:custom.sqsListenerQueueUrlSsmPath}"
+                    
+                    - !GetAtt ValidationQueue.Arn
+                    - !GetAtt NotificationQueue.Arn
+                    - !GetAtt ReportQueue.Arn
+                    - !GetAtt ListenerQueue.Arn
+                    - !Ref AdminCredentialsSecret
+                - Effect: Allow
+                  Action:
+                    - ssmmessages:CreateControlChannel
+                    - ssmmessages:CreateDataChannel
+                    - ssmmessages:OpenControlChannel
+                    - ssmmessages:OpenDataChannel
+                    - ssm:UpdateInstanceInformation
+                  Resource: "*"
+
+    # ------------------------------------------------------------
+    # ECR & ECS
+    # ------------------------------------------------------------
+    ECSCluster:
+      Type: AWS::ECS::Cluster
+      Properties:
+        ClusterName: ${self:custom.clusterName}
+        Configuration:
+          ExecuteCommandConfiguration:
+            Logging: DEFAULT
+
+    TaskDefinition:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: ${self:service}-task
+        NetworkMode: awsvpc
+        RequiresCompatibilities: [FARGATE]
+        Cpu: "256"
+        Memory: "512"
+        ExecutionRoleArn: !Ref ECSTaskExecutionRole
+        TaskRoleArn: !Ref ECSTaskRole
+        ContainerDefinitions:
+          - Name: ${self:service}-container
+            Image: !Sub "${AWS::AccountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:custom.ecrRepoName}:latest"
+            PortMappings:
+              - ContainerPort: 8090
+            HealthCheck:
+              Command: ["CMD-SHELL", "curl -f http://localhost:8090/actuator/health/liveness || exit 1"]
+              Interval: 30
+              Timeout: 5
+              Retries: 3
+              StartPeriod: 120
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogGroup
+                awslogs-region: ${self:provider.region}
+                awslogs-stream-prefix: ecs
+            Environment:
+              - Name: DB_HOST
+                Value: !GetAtt DBInstance.Endpoint.Address
+              - Name: DB_PORT
+                Value: !GetAtt DBInstance.Endpoint.Port
+              - Name: DB_NAME
+                Value: ${self:custom.dbName}
+              - Name: DB_SECRET_NAME
+                Value: ${self:custom.dbSecretName}
+              - Name: JWT_SECRET_NAME
+                Value: ${ssm:/creadiya/shared/jwt-secret-name/${self:provider.stage}}
+              - Name: CORS
+                Value: "http://localhost:8080"
+              - Name: QUEUE_URL_VALIDATION
+                Value: !GetAtt ValidationQueue.QueueUrl
+              - Name: QUEUE_URL_NOTIFICATION
+                Value: !GetAtt NotificationQueue.QueueUrl
+              - Name: QUEUE_URL_REPORT
+                Value: !GetAtt ReportQueue.QueueUrl
+              - Name: QUEUE_URL_LISTENER
+                Value: !GetAtt ListenerQueue.QueueUrl
+              - Name: AUTH_API_URL
+                Value: ${ssm:/creadiya/authentication-api/login-url/${self:provider.stage}}
+              - Name: AUTH_SECRET_NAME
+                Value: ${self:custom.adminCredentialsSecretName}
+              - Name: AWS_REGION
+                Value: ${self:provider.region}
+
+    LogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /ecs/${self:service}
+        RetentionInDays: 7
+
+    ECSService:
+      Type: AWS::ECS::Service
+      Properties:
+        ServiceName: ${self:service}-service
+        Cluster: !Ref ECSCluster
+        TaskDefinition: !Ref TaskDefinition
+        LaunchType: FARGATE
+        DesiredCount: 1
+        EnableExecuteCommand: true
+        NetworkConfiguration:
+          AwsvpcConfiguration:
+            Subnets:
+              - !Ref PrivateSubnetA
+              - !Ref PrivateSubnetB
+            SecurityGroups:
+              - !Ref ECSSecurityGroup
+        LoadBalancers:
+          - ContainerName: ${self:service}-container
+            ContainerPort: 8090
+            TargetGroupArn: !Ref TargetGroup
+
+    # ------------------------------------------------------------
+    # ALB & API Gateway
+    # ------------------------------------------------------------
+    ALB:
+      Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+      Properties:
+        Name: ${self:service}-alb
+        Scheme: internal
+        Subnets:
+          - !Ref PrivateSubnetA
+          - !Ref PrivateSubnetB
+        SecurityGroups:
+          - !Ref ALBSecurityGroup
+
+    TargetGroup:
+      Type: AWS::ElasticLoadBalancingV2::TargetGroup
+      Properties:
+        Name: ${self:service}-tg
+        VpcId: !Ref VPC
+        Port: 8090
+        Protocol: HTTP
+        TargetType: ip
+        HealthCheckPath: /actuator/health/liveness
+        HealthCheckIntervalSeconds: 40
+        HealthCheckTimeoutSeconds: 15        
+        UnhealthyThresholdCount: 5
+
+    Listener:
+      Type: AWS::ElasticLoadBalancingV2::Listener
+      Properties:
+        LoadBalancerArn: !Ref ALB
+        Port: 80
+        Protocol: HTTP
+        DefaultActions:
+          - Type: forward
+            TargetGroupArn: !Ref TargetGroup
+
+    HttpApi:
+      Type: AWS::ApiGatewayV2::Api
+      Properties:
+        Name: ${self:service}-http-api
+        ProtocolType: HTTP
+        CorsConfiguration:
+          AllowOrigins: ['*']
+          AllowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+          AllowHeaders: ['Content-Type', 'Authorization']
+
+    VpcLink:
+      Type: AWS::ApiGatewayV2::VpcLink
+      Properties:
+        Name: ${self:service}-vpc-link
+        SubnetIds:
+          - !Ref PrivateSubnetA
+          - !Ref PrivateSubnetB
+
+    ApiGatewayIntegration:
+      Type: AWS::ApiGatewayV2::Integration
+      Properties:
+        ApiId: !Ref HttpApi
+        IntegrationType: HTTP_PROXY
+        IntegrationMethod: ANY
+        IntegrationUri: !Ref Listener
+        ConnectionType: VPC_LINK
+        ConnectionId: !Ref VpcLink
+        PayloadFormatVersion: '1.0'
+
+    ApiGatewayRouteCreateApplication:
+      Type: AWS::ApiGatewayV2::Route
+      Properties:
+        ApiId: !Ref HttpApi
+        RouteKey: 'POST /api/v1/application'
+        Target: !Join ['/', ['integrations', !Ref ApiGatewayIntegration]]
+
+    ApiGatewayRoutePatchApplication:
+      Type: AWS::ApiGatewayV2::Route
+      Properties:
+        ApiId: !Ref HttpApi
+        RouteKey: 'PATCH /api/v1/application'
+        Target: !Join ['/', ['integrations', !Ref ApiGatewayIntegration]]
+
+    ApiGatewayRouteGetApplications:
+      Type: AWS::ApiGatewayV2::Route
+      Properties:
+        ApiId: !Ref HttpApi
+        RouteKey: 'GET /api/v1/applications'
+        Target: !Join ['/', ['integrations', !Ref ApiGatewayIntegration]]
+
+    ApiGatewayRouteHealthLiveness:
+      Type: AWS::ApiGatewayV2::Route
+      Properties:
+        ApiId: !Ref HttpApi
+        RouteKey: 'GET /actuator/health/liveness'
+        Target: !Join ['/', ['integrations', !Ref ApiGatewayIntegration]]
+
+    ApiGatewayStage:
+      Type: AWS::ApiGatewayV2::Stage
+      Properties:
+        ApiId: !Ref HttpApi
+        #StageName: ${self:provider.stage}
+        StageName: $default
+        AutoDeploy: true
+
+outputs:
+  ApiUrl:
+    Description: "URL of the API Gateway for the Application service"
+    Value: !Sub "https://${HttpApi}.execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}"

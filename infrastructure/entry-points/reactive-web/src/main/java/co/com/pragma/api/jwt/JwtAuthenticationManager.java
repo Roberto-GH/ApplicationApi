@@ -25,7 +25,7 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
   @Override
   public Mono<Authentication> authenticate(Authentication authentication) {
     return Mono.just(authentication)
-      .map(auth -> jwtProvider.getClaims(auth.getCredentials().toString()))
+      .flatMap(auth -> jwtProvider.getClaims(auth.getCredentials().toString()))
       .onErrorResume(e -> Mono.error(new AuthenticationApiException(ErrorEnum.UNAUTHORIZED_ACCESS, ApplicationWebKeys.JWT_ERROR_BAD_TOKEN)))
       .map(claims -> new UsernamePasswordAuthenticationToken(
         claims.getSubject(),

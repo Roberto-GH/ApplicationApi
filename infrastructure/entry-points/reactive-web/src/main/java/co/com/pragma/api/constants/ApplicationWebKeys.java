@@ -68,10 +68,10 @@ public class ApplicationWebKeys {
   public static final String ERROR_PAGE_NUMBER = "pageNumber is required";
   public static final String INVALIDA_PATCH_APPLICATION_REQUEST = "Fields 'applicationId' and 'statusId' are required and cannot be empty.";
   public static final String WRITTING_JSON_ERROR = "{\"error\":\"Error writing JSON output\"}";
-  public static final String PATCH_METHOD = "PATCH";
   public static final String OPEN_API_BEAN_METHOD_PATCH_APPLICATION = "listenPatchApplication";
   public static final String OPEN_API_OPERATION_PATCH_APPLICATION = "patchApplication";
   public static final String OPEN_API_SUMMARY_PATCH_APPLICATION = "Patch an existing application";
+  public static final String ALLOWED_PATH_ACTUATOR = "/actuator/**";
 
   public static final String[] ALLOWED_PATHS = new String[]{"/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/swagger-ui/**",
     "/actuator/prometheus/**", "/actuator/prometheus", "/actuator/**"};
