@@ -9,7 +9,7 @@ RUN gradle build -x test --no-daemon
 
 FROM amazoncorretto:21-alpine3.22
 WORKDIR /app
-RUN apk add --no-cache postgresql-client curl
+RUN apk add --no-cache postgresql-client curl nano
 RUN addgroup -S appgroup && adduser -S -G appgroup appuser
 COPY --from=builder /home/gradle/src/applications/app-service/build/libs/ApplicationApi.jar ApplicationApi.jar
 VOLUME /tmp
