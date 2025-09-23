@@ -10,15 +10,18 @@ logging:
     org:
       springframework:
         web: "DEBUG"
+      boot:
+        actuate: "TRACE"
 management:
   endpoints:
     web:
       exposure:
-        include: "health,prometheus"
+        include: "health,prometheus,info"
   endpoint:
     health:
       probes:
         enabled: true
+      show-details: "always"
   health:
     circuitbreakers:
       enabled: true
@@ -35,23 +38,21 @@ adapters:
     port: "${DB_PORT}"
     database: "${DB_NAME}"
     schema: "public"
-    username: "${DB_USER}"
-    password: "${DB_PASSWORD}"
-jwt:
-  secret: "${JWT_SECRET}"
+aws:
+  region: "us-east-1"
+  dbSecretName: "${DB_SECRET_NAME}"
+  jwtSecretName: "${JWT_SECRET_NAME}"
 adapter:
   restconsumer:
     timeout: 5000
     url: "${AUTH_API_URL}"
-    email: "${ADMIN_EMAIL}"
-    password: "${ADMIN_PASSWORD}"
+    authSecretName: "${AUTH_SECRET_NAME}"
   sqs:
     queues:
       validation-queue: "${QUEUE_URL_VALIDATION}"
       notification-queue: "${QUEUE_URL_NOTIFICATION}"
       report-queue: "${QUEUE_URL_REPORT}"
     region: "us-east-1"
-
 entrypoint:
   sqs:
     region: "${AWS_REGION}"
@@ -60,7 +61,6 @@ entrypoint:
     maxNumberOfMessages: 3
     visibilityTimeoutSeconds: 10
     numberOfThreads: 1
-
 resilience4j:
   circuitbreaker:
     instances:

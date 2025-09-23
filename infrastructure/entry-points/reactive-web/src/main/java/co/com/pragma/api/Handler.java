@@ -10,7 +10,6 @@ import co.com.pragma.model.application.PathApplication;
 import co.com.pragma.model.application.exception.ErrorEnum;
 import co.com.pragma.usecase.application.adapters.ApplicationControllerUseCase;
 import com.google.gson.Gson;
-import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -45,10 +44,12 @@ public class Handler {
       .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_TOKEN, ApplicationWebKeys.HEADER_MISSING)))
       .flatMap(header -> {
         String token = header.replace(ApplicationWebKeys.BEARER, ApplicationWebKeys.STRING_BLANK);
-        Claims claims = jwtProvider.getClaims(token);
-        String requestUserEmail = claims.getSubject();
-        LOG.debug(requestUserEmail);
-        return Mono.just(requestUserEmail);
+        return jwtProvider.getClaims(token)
+          .map(claims -> {
+            String requestUserEmail = claims.getSubject();
+            LOG.debug(requestUserEmail);
+            return requestUserEmail;
+          });
       }).flatMap(emailSolicitante -> serverRequest
         .bodyToMono(CreateApplicationDto.class)
         .switchIfEmpty(Mono.error(new ApplicationApiException(ErrorEnum.INVALID_APPLICATION_DATA, ApplicationWebKeys.ERROR_DATA_REQUIRED)))

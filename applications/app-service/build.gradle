@@ -1,6 +1,12 @@
 apply plugin: 'org.springframework.boot'
 
 dependencies {
+	implementation 'software.amazon.awssdk:sts'
+  implementation platform('software.amazon.awssdk:bom:2.32.13')
+  implementation 'software.amazon.awssdk:regions'
+  implementation 'software.amazon.awssdk:secretsmanager'
+  implementation 'com.github.bancolombia:aws-secrets-manager-async:4.4.34'
+  implementation project(':metrics')
 	implementation project(':sqs-listener')
 	implementation project(':sqs-sender')
 	implementation project(':metrics')
